@@ -8,7 +8,7 @@
           </svg>
           <span class="nav-tooltip">好友</span>
         </div>
-        <div class="nav-item" :class="{ active: currentPage === 'chats' }" @click="currentPage = 'chats'">
+        <div class="nav-item" :class="{ active: currentPage === 'chats' }" @click="router.push('/chat')">
           <svg class="nav-icon" viewBox="0 0 24 24">
             <path d="M20 2H4C2.9 2 2 2.9 2 4V22L6 18H20C21.1 18 22 17.1 22 16V4C22 2.9 21.1 2 20 2Z"/>
           </svg>
@@ -34,7 +34,10 @@
           <img src="@/assets/empty-friends.svg" alt="暂无好友" class="empty-image" />
           <p class="empty-text">暂无好友，快去添加吧</p>
         </div>
-        <div v-else v-for="friend in friendStore.friends" :key="friend.userId" class="friend-item" @click="selectFriend(friend)">
+        <div v-else v-for="friend in friendStore.friends" :key="friend.userId"
+             class="friend-item"
+             @click="selectFriend(friend)"
+             @dblclick="handleDoubleClick(friend)">
           <img :src="friend.avatar || defaultAvatar" :alt="friend.username" class="friend-avatar" />
           <span class="friend-name">{{ friend.username }}</span>
         </div>
@@ -51,6 +54,7 @@ import { ref, onMounted } from 'vue'
 import { useFriendStore } from '@/stores/friend'
 import FriendDetail from '@/components/friend/FriendDetail.vue'
 import defaultAvatar from '@/assets/default-avatar.svg'
+import { useRouter } from 'vue-router'
 
 interface Friend {
   userId: string
@@ -58,8 +62,9 @@ interface Friend {
   avatar: string
 }
 
-const currentPage = ref('friends')
+const router = useRouter()
 const friendStore = useFriendStore()
+const currentPage = ref('friends')
 const selectedFriend = ref<Friend | null>(null)
 
 const selectFriend = (friend: Friend) => {
@@ -67,8 +72,13 @@ const selectFriend = (friend: Friend) => {
 }
 
 const handleSendMessage = () => {
-  // TODO: 实现发送消息逻辑
-  console.log('发送消息给:', selectedFriend.value?.username)
+  if (selectedFriend.value) {
+    router.push(`/chat/${selectedFriend.value.userId}`)
+  }
+}
+
+const handleDoubleClick = (friend: Friend) => {
+  router.push(`/chat/${friend.userId}`)
 }
 
 onMounted(() => {
