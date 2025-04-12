@@ -34,24 +34,27 @@
           <img src="@/assets/empty-chats.svg" alt="暂无会话" class="empty-image" />
           <p class="empty-text">暂无会话，快去和好友聊天吧</p>
         </div>
-        <div v-else v-for="session in chatStore.sessions" :key="session.id"
+        <div v-else v-for="session in chatStore.sessions" :key="session.sessionId"
              class="chat-item"
-             :class="{ active: selectedSession?.id === session.id }"
+             :class="{ active: selectedSession?.sessionId === session.sessionId }"
              @click="selectSession(session)">
-          <img :src="session.avatar || defaultAvatar" :alt="session.name" class="chat-avatar" />
+          <img v-if="session.kind === 'single'" :src="session.friendAvatar || defaultAvatar" class="chat-avatar" />
+          <img v-if="session.kind === 'group'" :src="session.groupAvatar || defaultAvatar" class="chat-avatar" />
           <div class="chat-info">
-            <span class="chat-name">{{ session.name }}</span>
-            <span class="chat-preview">{{ session.lastMessage }}</span>
+            <span v-if="session.kind === 'single'" class="chat-name">{{ session.friendName }}</span>
+            <span v-if="session.kind === 'group'" class="chat-name">{{ session.groupName }}</span>
+            <!-- <span class="chat-preview">{{ session.lastMessage }}</span> -->
           </div>
         </div>
       </div>
       <div class="chat-box" :class="{ 'empty': !selectedSession }">
         <div v-if="selectedSession" class="chat-box-content">
           <div class="chat-header">
-            <span class="chat-title">{{ selectedSession.name }}</span>
+            <span v-if="selectedSession.kind === 'single'" class="chat-title">{{ selectedSession.friendName }}</span>
+            <span v-if="selectedSession.kind === 'group'" class="chat-title">{{ selectedSession.groupName }}</span>
           </div>
           <div class="message-list">
-            <div v-for="message in selectedSession.messages" :key="message.id"
+            <!-- <div v-for="message in selectedSession.messages" :key="message.id"
                  class="message-item"
                  :class="{ 'message-self': message.isSelf }">
               <img :src="message.avatar || defaultAvatar" :alt="message.sender" class="message-avatar" />
@@ -59,7 +62,7 @@
                 <span class="message-sender">{{ message.sender }}</span>
                 <div class="message-bubble">{{ message.content }}</div>
               </div>
-            </div>
+            </div> -->
           </div>
           <div class="message-input">
             <input type="text" v-model="newMessage" placeholder="输入消息..." @keyup.enter="sendMessage" />
@@ -78,11 +81,14 @@ import { useChatStore } from '@/stores/chat'
 import defaultAvatar from '@/assets/default-avatar.svg'
 
 interface Session {
-  id: string
-  name: string
-  avatar: string
-  lastMessage: string
-  messages: Message[]
+  sessionId: number
+	kind:         string
+	groupId:      string
+	groupName:    string
+	friendId:    number
+	friendName:    string
+	friendAvatar: string
+	seq:          number
 }
 
 interface Message {
@@ -106,7 +112,7 @@ const navigateTo = (route: string) => {
 
 const selectSession = (session: Session) => {
   selectedSession.value = session
-  chatStore.setCurrentSession(session.id)
+  chatStore.setCurrentSession(session.sessionId)
 }
 
 const sendMessage = () => {
@@ -120,7 +126,7 @@ const sendMessage = () => {
     isSelf: true
   }
 
-  chatStore.addMessage(selectedSession.value.id, message)
+  chatStore.addMessage(selectedSession.value.sessionId, message)
   newMessage.value = ''
 }
 
@@ -128,9 +134,9 @@ onMounted(() => {
   chatStore.fetchSessions()
 
   // 如果有路由参数，打开对应的聊天框
-  const sessionId = route.params.id as string
+  const sessionId = route.params.id
   if (sessionId) {
-    const session = chatStore.sessions.find(s => s.id === sessionId)
+    const session = chatStore.sessions.find(s => s.sessionId === Number(sessionId))
     if (session) {
       selectSession(session)
     }
@@ -140,7 +146,7 @@ onMounted(() => {
 // 监听路由参数变化
 watch(() => route.params.id, (newId) => {
   if (newId) {
-    const session = chatStore.sessions.find(s => s.id === newId)
+    const session = chatStore.sessions.find(s => s.sessionId === Number(newId))
     if (session) {
       selectSession(session)
     }

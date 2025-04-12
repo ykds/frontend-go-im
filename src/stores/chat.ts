@@ -1,12 +1,17 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
+import { getSessions, sendMessage } from '@/api/chat'
 
 interface Session {
-  id: string
-  name: string
-  avatar: string
-  lastMessage: string
-  messages: Message[]
+  sessionId: number
+	kind:         string
+	groupId:      string
+	groupName:    string
+	groupAvatar:    string
+	friendId:    number
+	friendName:    string
+	friendAvatar: string
+	seq:          number
 }
 
 interface Message {
@@ -19,59 +24,63 @@ interface Message {
 
 export const useChatStore = defineStore('chat', () => {
   const sessions = ref<Session[]>([])
-  const currentSessionId = ref<string | null>(null)
+  const currentSessionId = ref<number | null>(null)
+  const loading = ref(false)
+  const error = ref<string | null>(null)
 
   const fetchSessions = async () => {
-    // TODO: 从后端获取会话列表
-    sessions.value = [
-      {
-        id: '1',
-        name: '张三',
-        avatar: '',
-        lastMessage: '你好！',
-        messages: [
-          {
-            id: '1',
-            sender: '张三',
-            content: '你好！',
-            avatar: '',
-            isSelf: false
-          }
-        ]
-      },
-      {
-        id: '2',
-        name: '李四',
-        avatar: '',
-        lastMessage: '在吗？',
-        messages: [
-          {
-            id: '1',
-            sender: '李四',
-            content: '在吗？',
-            avatar: '',
-            isSelf: false
-          }
-        ]
-      }
-    ]
-  }
-
-  const addMessage = (sessionId: string, message: Message) => {
-    const session = sessions.value.find(s => s.id === sessionId)
-    if (session) {
-      session.messages.push(message)
-      session.lastMessage = message.content
+    loading.value = true
+    error.value = null
+    try {
+      const response = await getSessions()
+      sessions.value = response.list.map((item: any) => ({
+        sessionId: item.sessionId,
+        kind: item.kind,
+        groupId: item.groupId,
+        groupName: item.groupName,
+        groupAvatar: item.groupAvatar,
+        friendId: item.friendId,
+        friendName: item.friendName,
+        friendAvatar: item.friendAvatar,
+        seq: item.seq,
+      }))
+    } catch (err) {
+      error.value = '获取会话列表失败'
+      console.error('获取会话列表失败:', err)
+    } finally {
+      loading.value = false
     }
   }
 
-  const setCurrentSession = (sessionId: string) => {
+  const addMessage = async (sessionId: number, message: Message) => {
+    try {
+      await sendMessage({
+        kind: 'single',
+        toId: sessionId,
+        message: message.content,
+        seq: 0
+      })
+
+      const session = sessions.value.find(s => s.sessionId === sessionId)
+      if (session) {
+        // session.messages.push(message)
+        // session.lastMessage = message.content
+      }
+    } catch (err) {
+      error.value = '发送消息失败'
+      console.error('发送消息失败:', err)
+    }
+  }
+
+  const setCurrentSession = async (sessionId: number) => {
     currentSessionId.value = sessionId
   }
 
   return {
     sessions,
     currentSessionId,
+    loading,
+    error,
     fetchSessions,
     addMessage,
     setCurrentSession
