@@ -11,10 +11,6 @@ export interface UserInfo {
   nickname: string
 }
 
-export interface LoginResponse {
-  token: string
-}
-
-export const login = async (data: LoginRequest): Promise<LoginResponse> => {
-  return request.post<LoginResponse>('/api/user/login', data)
+export const login = async (data: LoginRequest): Promise<string> => {
+  return request.post<string>('/api/user/login', data)
 }

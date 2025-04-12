@@ -20,10 +20,9 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       loading.value = true
       error.value = null
-      const response = await loginApi(credentials)
-      setToken(response.token)
-      console.log(response.token)
-      // router.push('/chat')
+      const token = await loginApi(credentials)
+      setToken(token)
+      router.push('/friend')
     } catch (err) {
       const apiError = err as ApiError
       error.value = apiError.message || '登录失败，请重试'
