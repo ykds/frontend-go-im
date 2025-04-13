@@ -57,7 +57,7 @@
             <span v-if="selectedSession.kind === 'single'" class="chat-title">{{ selectedSession.friendName }}</span>
             <span v-if="selectedSession.kind === 'group'" class="chat-title">{{ selectedSession.groupName }}</span>
           </div>
-          <div class="message-list">
+          <div class="message-list" ref="messageListRef">
             <div v-for="message in selectedSession.messages" :key="message.id"
                  class="message-item"
                  :class="{ 'message-self': message.isSelf }">
@@ -69,8 +69,8 @@
             </div>
           </div>
           <div class="message-input">
-            <input type="text" v-model="newMessage" placeholder="输入消息..." @keyup.enter="sendMessage" />
-            <button @click="sendMessage">发送</button>
+            <input type="text" v-model="newMessage" placeholder="输入消息..." @keyup.enter="sendMsg" />
+            <button @click="sendMsg">发送</button>
           </div>
         </div>
       </div>
@@ -79,11 +79,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, nextTick } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useChatStore } from '@/stores/chat'
 import { useFriendStore } from '@/stores/friend'
-import { listMessage } from '@/api/chat'
+import { listMessage, sendMessage, ackMessage } from '@/api/chat'
 import wsClient from '@/utils/websocket'
 
 import defaultAvatar from '@/assets/default-avatar.svg'
@@ -93,15 +93,19 @@ interface Session {
 	kind:         string
 	groupId:      number
 	groupName:    string
+	groupAvatar:    string
 	friendId:    number
 	friendName:    string
 	friendAvatar: string
 	seq:          number
+
   messages: Message[]
+  lastMessage: string
+  offset: number
 }
 
 interface Message {
-  id: string
+  id: number
   sender: string
   content: string
   avatar: string
@@ -117,6 +121,7 @@ const currentPage = ref('chats')
 const selectedSession = ref<Session | null>(null)
 const newMessage = ref('')
 const loading = ref(true)
+const messageListRef = ref<HTMLElement | null>(null)
 
 const navigateTo = (route: string) => {
   router.push(`/${route}`)
@@ -127,63 +132,196 @@ const selectSession = (session: Session) => {
   chatStore.setCurrentSession(session.sessionId)
 }
 
-const sendMessage = () => {
+const sendMsg = async () => {
   if (!newMessage.value.trim() || !selectedSession.value) return
 
-  const message: Message = {
-    id: Date.now().toString(),
-    sender: '我',
-    content: newMessage.value,
-    avatar: defaultAvatar,
-    isSelf: true
+  try {
+      let toid = selectedSession.value.friendId
+      if (selectedSession.value.kind === 'group') {
+        toid = selectedSession.value.groupId
+      }
+      await sendMessage({
+          kind: selectedSession.value.kind,
+          toId: toid,
+          message: newMessage.value,
+          seq: 0
+        }, {
+          to_id: toid,
+          kind: selectedSession.value.kind
+        })
+    const message: Message = {
+      id: 0,
+      sender: '',
+      content: newMessage.value,
+      avatar: defaultAvatar,
+      isSelf: true
+    }
+    selectedSession.value.messages.push(message)
+    newMessage.value = ''
+  } catch(error) {
+    console.error('发送消息失败:', error)
   }
-
-  chatStore.addMessage(selectedSession.value.sessionId, message)
-  newMessage.value = ''
 }
+
+const scrollToBottom = () => {
+  if (messageListRef.value) {
+    messageListRef.value.scrollTop = messageListRef.value.scrollHeight
+  }
+}
+
+// 监听消息列表变化
+watch(() => selectedSession.value?.messages, () => {
+  nextTick(() => {
+    scrollToBottom()
+  })
+}, { deep: true })
+
+// 监听会话切换
+watch(() => selectedSession.value, () => {
+  nextTick(() => {
+    scrollToBottom()
+  })
+})
+
+interface pollMessage {
+  sessionId: number
+  kind: string
+  seq: number
+}
+
+interface newMessageNotify {
+  kind: string
+  sessionId: number
+  seq: number
+}
+
+interface newMessage {
+  type: number
+  content: string
+}
+
+interface Body {
+	id: number
+  sessionId: number
+	fromId: number
+	toId: number
+	content: string
+	seq: number
+	kind: string
+	createdAt: number
+}
+
+interface AckMessage {
+	type: number
+  kind: string
+	sessionId: number
+	id: number
+	seq: number
+}
+
 
 // 初始化数据
 const initData = async () => {
+  // 使用静态标志位确保只执行一次
+  if((initData as any).initialized) {
+    return
+  }
+
   try {
     loading.value = true
-
+    // 获取好友列表
     await friendStore.fetchFriends()
     // 获取会话列表
     await chatStore.fetchSessions()
-
+    // 获取消息
     chatStore.sessions.forEach(async session => {
-        if (session.kind === 'single') {
-          const response = await listMessage({
-            fromId: session.friendId,
-            seq: session.seq,
-            kind: session.kind
-          })
-          session.messages = response.list.map((item: any) => ({
+        const response = await listMessage({
+          fromId: session.friendId,
+          groupId: session.groupId,
+          seq: session.seq,
+          kind: session.kind
+        })
+        response.list.forEach(item => {
+          let sender = ""
+          let avatar = ""
+          if (item.kind === 'single') {
+            sender = friendStore.friendMap[item.fromId]?.username || '未知'
+            avatar = friendStore.friendMap[item.fromId]?.avatar || defaultAvatar
+          } else if (item.kind === 'group') {
+            sender = '群组'
+            avatar = defaultAvatar
+          }
+          session.messages.push({
             id: item.id,
             content: item.content,
             isSelf: false,
-            sender: friendStore.friendMap[item.fromId]?.username || '未知',
-            avatar: friendStore.friendMap[item.fromId]?.avatar || defaultAvatar,
-          }))
-          session.lastMessage = response.list[response.list.length - 1].content
-        } else if (session.kind === 'group') {
-          const response = await listMessage({
-            fromId: session.groupId,
-            seq: session.seq,
-            kind: session.kind
+            sender: sender,
+            avatar: avatar,
           })
-          session.messages = response.list.map((item: any) => ({
-            id: item.id,
-            content: item.content,
-            isSelf: false,
-            sender: item.sender,
-            avatar: item.avatar,
-            // TODO 从组成员map获取
-          }))
-        }
-      })
+        })
+    })
+    // 连接websocket
+    wsClient.connect()
 
-    // wsClient.connect()
+    // 监听新消息通知
+    wsClient.addGlobalCallback(7, async (content: string) => {
+        const notify: newMessageNotify = JSON.parse(content)
+        let session = chatStore.sessionMap.get(notify.sessionId)
+        if (!session) {
+          await chatStore.fetchSessions()
+          session = chatStore.sessionMap.get(notify.sessionId)
+        }
+        const req: pollMessage = {
+          sessionId: notify.sessionId,
+          kind: notify.kind,
+          seq: session?.offset || 0
+        }
+        wsClient.send({
+          type: 6,
+          content: JSON.stringify(req)
+        })
+    })
+
+    // 监听消息通知
+    wsClient.addGlobalCallback(6, (content: string) => {
+        const msgs: newMessage[] = JSON.parse(content)
+        let maxSeq = 0
+        let sessionId = 0
+        let kind = ""
+        msgs.forEach(msg => {
+          const body: Body = JSON.parse(msg.content)
+          sessionId = body.sessionId
+          kind = body.kind
+          const session = chatStore.sessionMap.get(body.sessionId)
+          if (session) {
+            session.messages.push({
+              id: body.id,
+              content: body.content,
+              isSelf: false,
+              sender: friendStore.friendMap[body.fromId]?.username || '未知',
+              avatar: friendStore.friendMap[body.fromId]?.avatar || defaultAvatar,
+            })
+            session.lastMessage = body.content
+            if (body.seq > maxSeq) {
+              maxSeq = body.seq
+            }
+          }
+        })
+        if (maxSeq > 0 && kind !== "" && sessionId !== 0) {
+            const ackMessage: AckMessage = {
+              type: 6,
+              kind: kind,
+              sessionId: sessionId,
+              id: 0,
+              seq: maxSeq
+            }
+            wsClient.send({
+              type: 1,
+              content: JSON.stringify(ackMessage)
+            })
+        }
+    })
+
     // 如果有路由参数，打开对应的聊天框
     const sessionId = route.params.id as string
     if (sessionId) {
@@ -192,6 +330,10 @@ const initData = async () => {
         selectSession(session)
       }
     }
+
+    // 标记为已初始化
+    (initData as any).initialized = true
+
   } catch (error) {
     console.error('初始化数据失败:', error)
   } finally {

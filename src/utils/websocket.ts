@@ -1,22 +1,27 @@
 import { ref } from 'vue'
 
 interface Message {
-  type: string
-  data: any
+  type: number
+  content: string
 }
 
 interface WebSocketOptions {
   url: string
   reconnectInterval?: number
   maxReconnectAttempts?: number
+  heartbeatInterval?: number
 }
+
+// 定义回调函数类型
+type Callback = (data: any) => void
 
 class WebSocketClient {
   private ws: WebSocket | null = null
   private options: WebSocketOptions
   private reconnectAttempts = 0
   private reconnectTimer: number | null = null
-  private messageHandlers: Map<string, ((data: any) => void)[]> = new Map()
+  private messageHandlers: Map<number, Callback> = new Map()
+  private heartbeatTimer: number | null = null
 
   public isConnected = ref(false)
 
@@ -24,6 +29,7 @@ class WebSocketClient {
     this.options = {
       reconnectInterval: 3000,
       maxReconnectAttempts: 5,
+      heartbeatInterval: 30000, // 默认30秒发送一次心跳
       ...options
     }
   }
@@ -40,6 +46,8 @@ class WebSocketClient {
         console.log('WebSocket connected')
         this.isConnected.value = true
         this.reconnectAttempts = 0
+        // 连接成功后启动心跳
+        this.startHeartbeat()
       }
 
       this.ws.onmessage = (event) => {
@@ -54,15 +62,42 @@ class WebSocketClient {
       this.ws.onclose = () => {
         console.log('WebSocket closed')
         this.isConnected.value = false
+        // 连接关闭时停止心跳
+        this.stopHeartbeat()
         // this.reconnect()
       }
 
       this.ws.onerror = (error) => {
+        this.stopHeartbeat()
         console.error('WebSocket error:', error)
       }
+
     } catch (error) {
       console.error('Failed to create WebSocket:', error)
       // this.reconnect()
+    }
+  }
+
+  private startHeartbeat() {
+    // 先清除可能存在的旧定时器
+    this.stopHeartbeat()
+
+    // 创建新的心跳定时器
+    this.heartbeatTimer = window.setInterval(() => {
+      if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+        // 这里发送心跳消息，具体内容由用户填充
+        this.send({
+          type: 1, // 心跳消息类型
+          content: '' // 心跳消息内容
+        })
+      }
+    }, this.options.heartbeatInterval)
+  }
+
+  private stopHeartbeat() {
+    if (this.heartbeatTimer) {
+      clearInterval(this.heartbeatTimer)
+      this.heartbeatTimer = null
     }
   }
 
@@ -84,9 +119,10 @@ class WebSocketClient {
   }
 
   private handleMessage(message: Message) {
-    const handlers = this.messageHandlers.get(message.type)
-    if (handlers) {
-      handlers.forEach(handler => handler(message.data))
+    // 调用特定类型的处理函数
+    const handler = this.messageHandlers.get(message.type)
+    if (handler) {
+      handler(message.content)
     }
   }
 
@@ -103,21 +139,14 @@ class WebSocketClient {
     }
   }
 
-  on(type: string, handler: (data: any) => void) {
-    if (!this.messageHandlers.has(type)) {
-      this.messageHandlers.set(type, [])
-    }
-    this.messageHandlers.get(type)?.push(handler)
+  // 注册全局回调函数
+  addGlobalCallback(key: number, callback: Callback) {
+    this.messageHandlers.set(key, callback)
   }
 
-  off(type: string, handler: (data: any) => void) {
-    const handlers = this.messageHandlers.get(type)
-    if (handlers) {
-      const index = handlers.indexOf(handler)
-      if (index !== -1) {
-        handlers.splice(index, 1)
-      }
-    }
+  // 移除全局回调函数
+  removeGlobalCallback(key: number) {
+    this.messageHandlers.delete(key)
   }
 
   close() {
@@ -129,12 +158,14 @@ class WebSocketClient {
       clearTimeout(this.reconnectTimer)
       this.reconnectTimer = null
     }
+    // 关闭时停止心跳
+    this.stopHeartbeat()
   }
 }
 
 // 创建全局WebSocket实例
 const wsClient = new WebSocketClient({
-  url: 'ws://localhost:6003/ws'
+  url: 'ws://localhost:8081/ws'
 })
 
 export default wsClient

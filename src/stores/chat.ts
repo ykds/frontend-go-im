@@ -1,7 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { getSessions, sendMessage, listMessage } from '@/api/chat'
-import wsClient from '@/utils/websocket'
+import { getSessions } from '@/api/chat'
 
 interface Session {
   sessionId: number
@@ -16,10 +15,11 @@ interface Session {
 
   messages: Message[]
   lastMessage: string
+  offset: number
 }
 
 interface Message {
-  id: string
+  id: number
   sender: string
   content: string
   avatar: string
@@ -28,6 +28,7 @@ interface Message {
 
 export const useChatStore = defineStore('chat', () => {
   const sessions = ref<Session[]>([])
+  const sessionMap = ref<Map<number, Session>>(new Map())
   const currentSessionId = ref<number | null>(null)
   const loading = ref(false)
   const error = ref<string | null>(null)
@@ -48,35 +49,12 @@ export const useChatStore = defineStore('chat', () => {
         seq: item.seq,
         messages: [],
         lastMessage: '',
+        offset: 0,
       }))
+      sessionMap.value = new Map(sessions.value.map(session => [session.sessionId, session]))
     } catch (err) {
       error.value = '获取会话列表失败'
       console.error('获取会话列表失败:', err)
-      throw err
-    }
-  }
-
-  const addMessage = async (sessionId: number, message: Message) => {
-    try {
-      // 通过WebSocket发送消息
-      wsClient.send({
-        type: 'message',
-        data: {
-          kind: 'single',
-          toId: sessionId,
-          message: message.content,
-          seq: 0
-        }
-      })
-
-      const session = sessions.value.find(s => s.sessionId === sessionId)
-      if (session) {
-        // session.messages.push(message)
-        // session.lastMessage = message.content
-      }
-    } catch (err) {
-      error.value = '发送消息失败'
-      console.error('发送消息失败:', err)
       throw err
     }
   }
@@ -88,11 +66,11 @@ export const useChatStore = defineStore('chat', () => {
 
   return {
     sessions,
+    sessionMap,
     currentSessionId,
     loading,
     error,
     fetchSessions,
-    addMessage,
     setCurrentSession
   }
 })

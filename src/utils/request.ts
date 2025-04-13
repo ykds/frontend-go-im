@@ -9,7 +9,6 @@ const api: AxiosInstance = axios.create({
     'Content-Type': 'application/json'
   }
 })
-
 // 请求拦截器
 api.interceptors.request.use(
   (config) => {
@@ -66,6 +65,61 @@ export const request = {
   delete: <T = any>(url: string, config?: AxiosRequestConfig): Promise<T> => {
     return api.delete<ApiResponse<T>>(url, config).then(res => res.data.data)
   }
+}
+
+
+const wsapi: AxiosInstance = axios.create({
+  baseURL: 'http://localhost:8081',
+  timeout: 10000,
+  headers: {
+    'Content-Type': 'application/json'
+  }
+})
+
+// 请求拦截器
+wsapi.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token')
+    if (token !== "undefined") {
+      config.headers.token = token
+    }
+    return config
+  },
+  (error) => {
+    return Promise.reject(error)
+  }
+)
+
+// 响应拦截器
+wsapi.interceptors.response.use(
+  (response: AxiosResponse<ApiResponse>) => {
+    const { code, message, data } = response.data
+
+    if (code !== 200) {
+      const error: ApiError = {
+        code,
+        message,
+        data
+      }
+      return Promise.reject(error)
+    }
+
+    return response
+  },
+  (error: AxiosError) => {
+    const apiError: ApiError = {
+      code: error.response?.status || 500,
+      message: error.message || '请求失败',
+      data: error.response?.data
+    }
+    return Promise.reject(apiError)
+  }
+)
+
+export const wsrequest = {
+  get: <T = any>(url: string, config?: AxiosRequestConfig): Promise<T> => {
+    return wsapi.get<ApiResponse<T>>(url, config).then(res => res.data.data)
+  },
 }
 
 export default api

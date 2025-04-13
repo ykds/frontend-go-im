@@ -1,4 +1,4 @@
-import { request } from '@/utils/request'
+import { request, wsrequest } from '@/utils/request'
 
 // 获取会话列表
 export function getSessions() {
@@ -9,8 +9,14 @@ export function listMessage(data: ListMessageParams) {
   return request.get<ListMessageResponse>('/api/message/unread', {params: data})
 }
 
+export function ackMessage(data: AckMessageReq) {
+  return request.put('/api/message', data)
+}
+
 // 发送消息
-export function sendMessage(data: SendMessageParams) {
+export async function sendMessage(data: SendMessageParams, data2: GetSeqReq) {
+  const seq = await wsrequest.get<number>('/seq', {params: data2})
+  data.seq = seq
   return request.post<string>('/api/message', data)
 }
 
@@ -53,6 +59,17 @@ export interface MessageInfo {
 
 export interface ListMessageParams {
   fromId: number
+  groupId: number
   seq: number
   kind: string
+}
+
+export interface GetSeqReq {
+  to_id: number
+  kind: string
+}
+
+export interface AckMessageReq {
+  sessionId: number
+  seq: number
 }
