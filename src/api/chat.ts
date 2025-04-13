@@ -5,6 +5,10 @@ export function getSessions() {
   return request.get<GetSessionsResponse>('/api/message/session')
 }
 
+export function listMessage(data: ListMessageParams) {
+  return request.get<ListMessageResponse>('/api/message/unread', {params: data})
+}
+
 // 发送消息
 export function sendMessage(data: SendMessageParams) {
   return request.post<string>('/api/message', data)
@@ -33,4 +37,22 @@ export interface SendMessageParams {
 // 接口响应类型定义
 export interface GetSessionsResponse {
   list: SessionInfo[]
+}
+
+export interface ListMessageResponse {
+  list: MessageInfo[]
+}
+
+export interface MessageInfo {
+  id:      number
+	kind:    string
+	content: string
+	seq:     number
+	fromId:  number
+}
+
+export interface ListMessageParams {
+  fromId: number
+  seq: number
+  kind: string
 }

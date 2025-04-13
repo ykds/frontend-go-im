@@ -1,6 +1,10 @@
 <template>
   <div class="chat-container">
-    <div class="chat-content">
+    <div class="chat-content" :class="{ 'loading': loading }">
+      <div v-if="loading" class="loading-overlay">
+        <div class="loading-spinner"></div>
+        <span class="loading-text">加载中...</span>
+      </div>
       <div class="nav-sidebar">
         <div class="nav-item" :class="{ active: currentPage === 'chats' }" @click="currentPage = 'chats'">
           <svg class="nav-icon" viewBox="0 0 24 24">
@@ -43,7 +47,7 @@
           <div class="chat-info">
             <span v-if="session.kind === 'single'" class="chat-name">{{ session.friendName }}</span>
             <span v-if="session.kind === 'group'" class="chat-name">{{ session.groupName }}</span>
-            <!-- <span class="chat-preview">{{ session.lastMessage }}</span> -->
+            <span class="chat-preview">{{ session.lastMessage }}</span>
           </div>
         </div>
       </div>
@@ -54,7 +58,7 @@
             <span v-if="selectedSession.kind === 'group'" class="chat-title">{{ selectedSession.groupName }}</span>
           </div>
           <div class="message-list">
-            <!-- <div v-for="message in selectedSession.messages" :key="message.id"
+            <div v-for="message in selectedSession.messages" :key="message.id"
                  class="message-item"
                  :class="{ 'message-self': message.isSelf }">
               <img :src="message.avatar || defaultAvatar" :alt="message.sender" class="message-avatar" />
@@ -62,7 +66,7 @@
                 <span class="message-sender">{{ message.sender }}</span>
                 <div class="message-bubble">{{ message.content }}</div>
               </div>
-            </div> -->
+            </div>
           </div>
           <div class="message-input">
             <input type="text" v-model="newMessage" placeholder="输入消息..." @keyup.enter="sendMessage" />
@@ -78,17 +82,22 @@
 import { ref, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useChatStore } from '@/stores/chat'
+import { useFriendStore } from '@/stores/friend'
+import { listMessage } from '@/api/chat'
+import wsClient from '@/utils/websocket'
+
 import defaultAvatar from '@/assets/default-avatar.svg'
 
 interface Session {
   sessionId: number
 	kind:         string
-	groupId:      string
+	groupId:      number
 	groupName:    string
 	friendId:    number
 	friendName:    string
 	friendAvatar: string
 	seq:          number
+  messages: Message[]
 }
 
 interface Message {
@@ -102,9 +111,12 @@ interface Message {
 const router = useRouter()
 const route = useRoute()
 const chatStore = useChatStore()
+const friendStore = useFriendStore()
+
 const currentPage = ref('chats')
 const selectedSession = ref<Session | null>(null)
 const newMessage = ref('')
+const loading = ref(true)
 
 const navigateTo = (route: string) => {
   router.push(`/${route}`)
@@ -130,17 +142,65 @@ const sendMessage = () => {
   newMessage.value = ''
 }
 
-onMounted(() => {
-  chatStore.fetchSessions()
+// 初始化数据
+const initData = async () => {
+  try {
+    loading.value = true
 
-  // 如果有路由参数，打开对应的聊天框
-  const sessionId = route.params.id
-  if (sessionId) {
-    const session = chatStore.sessions.find(s => s.sessionId === Number(sessionId))
-    if (session) {
-      selectSession(session)
+    await friendStore.fetchFriends()
+    // 获取会话列表
+    await chatStore.fetchSessions()
+
+    chatStore.sessions.forEach(async session => {
+        if (session.kind === 'single') {
+          const response = await listMessage({
+            fromId: session.friendId,
+            seq: session.seq,
+            kind: session.kind
+          })
+          session.messages = response.list.map((item: any) => ({
+            id: item.id,
+            content: item.content,
+            isSelf: false,
+            sender: friendStore.friendMap[item.fromId]?.username || '未知',
+            avatar: friendStore.friendMap[item.fromId]?.avatar || defaultAvatar,
+          }))
+          session.lastMessage = response.list[response.list.length - 1].content
+        } else if (session.kind === 'group') {
+          const response = await listMessage({
+            fromId: session.groupId,
+            seq: session.seq,
+            kind: session.kind
+          })
+          session.messages = response.list.map((item: any) => ({
+            id: item.id,
+            content: item.content,
+            isSelf: false,
+            sender: item.sender,
+            avatar: item.avatar,
+            // TODO 从组成员map获取
+          }))
+        }
+      })
+
+    // wsClient.connect()
+    // 如果有路由参数，打开对应的聊天框
+    const sessionId = route.params.id as string
+    if (sessionId) {
+      const session = chatStore.sessions.find(s => s.sessionId === Number(sessionId))
+      if (session) {
+        selectSession(session)
+      }
     }
+  } catch (error) {
+    console.error('初始化数据失败:', error)
+  } finally {
+    loading.value = false
   }
+}
+
+onMounted(() => {
+  initData()
 })
 
 // 监听路由参数变化
@@ -441,5 +501,45 @@ watch(() => route.params.id, (newId) => {
 .empty-text {
   font-size: 14px;
   color: var(--color-text-secondary);
+}
+
+.loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.8);
+  z-index: 1000;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--color-primary);
+  border-radius: 50%;
+  border-top-color: transparent;
+  animation: spin 1s linear infinite;
+  margin-bottom: 16px;
+}
+
+.loading-text {
+  font-size: 16px;
+  color: var(--color-text);
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.chat-content.loading {
+  position: relative;
+  overflow: hidden;
 }
 </style>

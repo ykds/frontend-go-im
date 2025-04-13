@@ -39,21 +39,26 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useAuthStore } from '@/stores/auth'
+import { useRouter } from 'vue-router'
 
 const authStore = useAuthStore()
 const username = ref('')
 const password = ref('')
 const loading = ref(false)
 const error = ref<string | null>(null)
+const router = useRouter()
 
 const handleLogin = async () => {
   try {
     loading.value = true
     error.value = null
-    await authStore.login({
+    const token = await authStore.login({
       phone: username.value,
       password: password.value
     })
+    // 保存token
+    localStorage.setItem('token', token)
+    router.push('/chat')
   } catch (err) {
     error.value = authStore.error || '登录失败，请重试'
   } finally {

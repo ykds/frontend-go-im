@@ -16,13 +16,12 @@ export const useAuthStore = defineStore('auth', () => {
     localStorage.setItem('token', newToken)
   }
 
-  const login = async (credentials: LoginRequest) => {
+  const login = async (credentials: LoginRequest): Promise<string> => {
     try {
       loading.value = true
       error.value = null
       const token = await loginApi(credentials)
-      setToken(token)
-      router.push('/friend')
+      return token
     } catch (err) {
       const apiError = err as ApiError
       error.value = apiError.message || '登录失败，请重试'

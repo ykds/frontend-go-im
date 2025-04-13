@@ -16,6 +16,7 @@ export const useFriendStore = defineStore('friend', () => {
   const friends = ref<Friend[]>([])
   const loading = ref(false)
   const error = ref<string | null>(null)
+  const friendMap = ref<Record<string, Friend>>({})
 
   const fetchFriends = async () => {
     try {
@@ -23,6 +24,9 @@ export const useFriendStore = defineStore('friend', () => {
       error.value = null
       const response = await request.get<ListFriendResponse>('/api/friends')
       friends.value = response.list
+      response.list.forEach(friend => {
+        friendMap.value[friend.userId] = friend
+      })
     } catch (err) {
       error.value = '获取好友列表失败'
       throw err
@@ -35,6 +39,7 @@ export const useFriendStore = defineStore('friend', () => {
     friends,
     loading,
     error,
-    fetchFriends
+    fetchFriends,
+    friendMap,
   }
 })

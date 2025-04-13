@@ -1,17 +1,21 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { getSessions, sendMessage } from '@/api/chat'
+import { getSessions, sendMessage, listMessage } from '@/api/chat'
+import wsClient from '@/utils/websocket'
 
 interface Session {
   sessionId: number
 	kind:         string
-	groupId:      string
+	groupId:      number
 	groupName:    string
 	groupAvatar:    string
 	friendId:    number
 	friendName:    string
 	friendAvatar: string
 	seq:          number
+
+  messages: Message[]
+  lastMessage: string
 }
 
 interface Message {
@@ -29,7 +33,6 @@ export const useChatStore = defineStore('chat', () => {
   const error = ref<string | null>(null)
 
   const fetchSessions = async () => {
-    loading.value = true
     error.value = null
     try {
       const response = await getSessions()
@@ -43,22 +46,27 @@ export const useChatStore = defineStore('chat', () => {
         friendName: item.friendName,
         friendAvatar: item.friendAvatar,
         seq: item.seq,
+        messages: [],
+        lastMessage: '',
       }))
     } catch (err) {
       error.value = '获取会话列表失败'
       console.error('获取会话列表失败:', err)
-    } finally {
-      loading.value = false
+      throw err
     }
   }
 
   const addMessage = async (sessionId: number, message: Message) => {
     try {
-      await sendMessage({
-        kind: 'single',
-        toId: sessionId,
-        message: message.content,
-        seq: 0
+      // 通过WebSocket发送消息
+      wsClient.send({
+        type: 'message',
+        data: {
+          kind: 'single',
+          toId: sessionId,
+          message: message.content,
+          seq: 0
+        }
       })
 
       const session = sessions.value.find(s => s.sessionId === sessionId)
@@ -69,12 +77,14 @@ export const useChatStore = defineStore('chat', () => {
     } catch (err) {
       error.value = '发送消息失败'
       console.error('发送消息失败:', err)
+      throw err
     }
   }
 
   const setCurrentSession = async (sessionId: number) => {
     currentSessionId.value = sessionId
   }
+
 
   return {
     sessions,
