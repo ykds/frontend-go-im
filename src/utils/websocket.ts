@@ -29,7 +29,7 @@ class WebSocketClient {
     this.options = {
       reconnectInterval: 3000,
       maxReconnectAttempts: 5,
-      heartbeatInterval: 30000, // 默认30秒发送一次心跳
+      heartbeatInterval: 50000,
       ...options
     }
   }
@@ -41,6 +41,10 @@ class WebSocketClient {
 
     try {
       this.ws = new WebSocket(this.options.url + "?token=" + localStorage.getItem('token'))
+
+      this.isConnected.value = true
+      this.reconnectAttempts = 0
+      this.startHeartbeat()
 
       this.ws.onopen = () => {
         console.log('WebSocket connected')
@@ -69,7 +73,11 @@ class WebSocketClient {
 
       this.ws.onerror = (error) => {
         this.stopHeartbeat()
-        console.error('WebSocket error:', error)
+        console.error('WebSocket error details:', {
+          readyState: this.ws?.readyState,
+          url: this.ws?.url,
+          error
+        })
       }
 
     } catch (error) {
@@ -87,7 +95,7 @@ class WebSocketClient {
       if (this.ws && this.ws.readyState === WebSocket.OPEN) {
         // 这里发送心跳消息，具体内容由用户填充
         this.send({
-          type: 1, // 心跳消息类型
+          type: 2, // 心跳消息类型
           content: '' // 心跳消息内容
         })
       }
