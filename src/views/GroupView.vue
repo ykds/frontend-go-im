@@ -1,25 +1,22 @@
 <template>
-  <div class="friend-container">
-    <div class="friend-content">
+  <div class="group-container">
+    <div class="group-content">
       <div class="nav-sidebar">
         <div class="nav-item" :class="{ active: currentPage === 'chats' }" @click="router.push('/chat')">
           <svg class="nav-icon" viewBox="0 0 24 24">
             <path d="M20 2H4C2.9 2 2 2.9 2 4V22L6 18H20C21.1 18 22 17.1 22 16V4C22 2.9 21.1 2 20 2Z"/>
           </svg>
-          <!-- <span class="nav-tooltip">聊天</span> -->
         </div>
-        <div class="nav-item" :class="{ active: currentPage === 'friends' }" @click="currentPage = 'friends'">
+        <div class="nav-item" :class="{ active: currentPage === 'friends' }" @click="router.push('/friend')">
           <svg class="nav-icon" viewBox="0 0 24 24">
             <path d="M16 11C17.66 11 18.99 9.66 18.99 8C18.99 6.34 17.66 5 16 5C14.34 5 13 6.34 13 8C13 9.66 14.34 11 16 11ZM8 11C9.66 11 10.99 9.66 10.99 8C10.99 6.34 9.66 5 8 5C6.34 5 5 6.34 5 8C5 9.66 6.34 11 8 11ZM8 13C5.67 13 1 14.17 1 16.5V19H15V16.5C15 14.17 10.33 13 8 13ZM16 13C15.71 13 15.38 13.02 15.03 13.05C16.19 13.89 17 15.02 17 16.5V19H23V16.5C23 14.17 18.33 13 16 13Z"/>
           </svg>
-          <!-- <span class="nav-tooltip">好友</span> -->
         </div>
-        <div class="nav-item" :class="{ active: currentPage === 'groups' }" @click="router.push('/group')">
+        <div class="nav-item" :class="{ active: currentPage === 'groups' }" @click="currentPage = 'groups'">
           <svg class="nav-icon" viewBox="0 0 24 24">
             <path d="M12 12.75C8.83 12.75 6.25 10.17 6.25 7C6.25 3.83 8.83 1.25 12 1.25C15.17 1.25 17.75 3.83 17.75 7C17.75 10.17 15.17 12.75 12 12.75ZM12 2.75C9.66 2.75 7.75 4.66 7.75 7C7.75 9.34 9.66 11.25 12 11.25C14.34 11.25 16.25 9.34 16.25 7C16.25 4.66 14.34 2.75 12 2.75Z"/>
             <path d="M3.41 22.75C3.28 22.75 3.15 22.72 3.03 22.66C2.78 22.53 2.62 22.27 2.62 22V17C2.62 13.9 5.03 11.5 8.13 11.5H15.88C18.98 11.5 21.38 13.9 21.38 17V22C21.38 22.27 21.22 22.53 20.97 22.66C20.72 22.79 20.42 22.75 20.21 22.57L12 14.36L3.79 22.57C3.66 22.69 3.54 22.75 3.41 22.75Z"/>
           </svg>
-          <!-- <span class="nav-tooltip">群组</span> -->
         </div>
         <div class="nav-item" :class="{ active: currentPage === 'profile' }" @click="currentPage = 'profile'">
           <svg class="nav-icon" viewBox="0 0 24 24">
@@ -28,82 +25,79 @@
           <!-- <span class="nav-tooltip">个人</span> -->
         </div>
       </div>
-      <div class="friend-list">
-        <h2 class="list-title">好友列表</h2>
-        <div v-if="friendStore.friends.length === 0" class="empty-state">
-          <img src="@/assets/empty-friends.svg" alt="暂无好友" class="empty-image" />
-          <p class="empty-text">暂无好友，快去添加吧</p>
+      <div class="group-list">
+        <h2 class="list-title">群组列表</h2>
+        <div v-if="groupStore.groups.length === 0" class="empty-state">
+          <img src="@/assets/empty-groups.svg" alt="暂无群组" class="empty-image" />
+          <p class="empty-text">暂无群组，快去加入吧</p>
         </div>
-        <div v-else v-for="friend in friendStore.friends" :key="friend.userId"
-             class="friend-item"
-             @click="selectFriend(friend)"
-             @dblclick="handleDoubleClick(friend)">
-          <img :src="friend.avatar || defaultAvatar" :alt="friend.username" class="friend-avatar" />
-          <span class="friend-name">{{ friend.username }}</span>
+        <div v-else v-for="group in groupStore.groups" :key="group.id"
+             class="group-item"
+             @click="selectGroup(group)"
+             @dblclick="handleDoubleClick(group)">
+          <img :src="group.avatar || defaultAvatar" :alt="group.name" class="group-avatar" />
+          <span class="group-name">{{ group.name }}</span>
         </div>
       </div>
-      <div class="friend-detail" :class="{ 'empty': !selectedFriend }">
-        <FriendDetail v-if="selectedFriend" :friend="selectedFriend" @send-message="handleSendMessage" />
+      <div class="group-detail" :class="{ 'empty': !selectedGroup }">
+        <GroupDetail v-if="selectedGroup" :group="selectedGroup" @send-message="handleSendMessage" />
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { useFriendStore } from '@/stores/friend'
-import FriendDetail from '@/components/friend/FriendDetail.vue'
-import defaultAvatar from '@/assets/default-avatar.svg'
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-
-interface Friend {
-  userId: string
-  username: string
+import GroupDetail from '@/components/group/GroupDetail.vue'
+import defaultAvatar from '@/assets/default-avatar.svg'
+import { useGroupStore } from '@/stores/group'
+interface Group {
+  id: number
+  groupNo: number
+  name: string
   avatar: string
 }
 
-const router = useRouter()
-const friendStore = useFriendStore()
-const currentPage = ref('friends')
-const selectedFriend = ref<Friend | null>(null)
+const groupStore = useGroupStore()
 
-const selectFriend = (friend: Friend) => {
-  selectedFriend.value = friend
+const router = useRouter()
+const currentPage = ref('groups')
+const selectedGroup = ref<Group | null>(null)
+
+const selectGroup = (group: Group) => {
+  selectedGroup.value = group
 }
 
 const handleSendMessage = () => {
-  if (selectedFriend.value) {
+  if (selectedGroup.value) {
     router.push({
       name: 'chat-detail',
       params: {
-        id: selectedFriend.value.userId
+        id: selectedGroup.value.id
       },
       query: {
-        kind: 'single',
+        kind: 'group'
       }
     })
   }
 }
 
-const handleDoubleClick = (friend: Friend) => {
+const handleDoubleClick = (group: Group) => {
   router.push({
     name: 'chat-detail',
     params: {
-      id: friend.userId
+      id: group.id
     },
     query: {
-      kind: 'single',
+      kind: 'group'
     }
   })
 }
-
-onMounted(() => {
-  friendStore.fetchFriends()
-})
 </script>
 
 <style scoped>
-.friend-container {
+.group-container {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -117,7 +111,7 @@ onMounted(() => {
   bottom: 0;
 }
 
-.friend-content {
+.group-content {
   display: flex;
   height: 80vh;
   width: 80vw;
@@ -168,41 +162,7 @@ onMounted(() => {
   fill: var(--color-text-secondary);
 }
 
-.nav-tooltip {
-  position: absolute;
-  left: 100%;
-  top: 50%;
-  transform: translateY(-50%);
-  background: var(--color-text);
-  color: var(--color-white);
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 12px;
-  white-space: nowrap;
-  opacity: 0;
-  visibility: hidden;
-  transition: all 0.3s ease;
-  margin-left: 8px;
-}
-
-.nav-tooltip::before {
-  content: '';
-  position: absolute;
-  left: -4px;
-  top: 50%;
-  transform: translateY(-50%);
-  border-width: 4px;
-  border-style: solid;
-  border-color: transparent var(--color-text) transparent transparent;
-}
-
-.nav-item:hover .nav-tooltip {
-  opacity: 1;
-  visibility: visible;
-  margin-left: 12px;
-}
-
-.friend-list {
+.group-list {
   width: 240px;
   border-right: 1px solid var(--color-border);
   overflow-y: auto;
@@ -219,7 +179,7 @@ onMounted(() => {
   border-bottom: 1px solid var(--color-border);
 }
 
-.friend-item {
+.group-item {
   display: flex;
   align-items: center;
   padding: 12px;
@@ -229,11 +189,11 @@ onMounted(() => {
   margin-bottom: 8px;
 }
 
-.friend-item:hover {
+.group-item:hover {
   background: var(--color-input-bg);
 }
 
-.friend-avatar {
+.group-avatar {
   width: 40px;
   height: 40px;
   border-radius: 50%;
@@ -241,12 +201,12 @@ onMounted(() => {
   border: 2px solid var(--color-border);
 }
 
-.friend-name {
+.group-name {
   font-size: 16px;
   color: var(--color-text);
 }
 
-.friend-detail {
+.group-detail {
   flex: 1;
   padding: 24px;
   display: flex;
@@ -256,7 +216,7 @@ onMounted(() => {
   width: 500px;
 }
 
-.friend-detail.empty {
+.group-detail.empty {
   background: var(--color-background);
   border-left: 1px dashed var(--color-border);
 }

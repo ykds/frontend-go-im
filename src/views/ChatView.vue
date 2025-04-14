@@ -18,7 +18,7 @@
           </svg>
           <!-- <span class="nav-tooltip">好友</span> -->
         </div>
-        <div class="nav-item" :class="{ active: currentPage === 'groups' }" @click="currentPage = 'groups'">
+        <div class="nav-item" :class="{ active: currentPage === 'groups' }" @click="navigateTo('group')">
           <svg class="nav-icon" viewBox="0 0 24 24">
             <path d="M12 12.75C8.83 12.75 6.25 10.17 6.25 7C6.25 3.83 8.83 1.25 12 1.25C15.17 1.25 17.75 3.83 17.75 7C17.75 10.17 15.17 12.75 12 12.75ZM12 2.75C9.66 2.75 7.75 4.66 7.75 7C7.75 9.34 9.66 11.25 12 11.25C14.34 11.25 16.25 9.34 16.25 7C16.25 4.66 14.34 2.75 12 2.75Z"/>
             <path d="M3.41 22.75C3.28 22.75 3.15 22.72 3.03 22.66C2.78 22.53 2.62 22.27 2.62 22V17C2.62 13.9 5.03 11.5 8.13 11.5H15.88C18.98 11.5 21.38 13.9 21.38 17V22C21.38 22.27 21.22 22.53 20.97 22.66C20.72 22.79 20.42 22.75 20.21 22.57L12 14.36L3.79 22.57C3.66 22.69 3.54 22.75 3.41 22.75Z"/>
@@ -183,15 +183,20 @@ watch(() => selectedSession.value, () => {
 
 
 // 监听路由参数变化
-watch(() => route.params.id, (newId) => {
+watch(() => route.params.id, async (newId) => {
   if (newId) {
-    const session = chatStore.sessions.find(s => {
-      if(route.query.kind === 'single') {
-        return s.friendId === Number(newId)
-      } else if(route.query.kind === 'group') {
-        return s.groupId === Number(newId)
+    // 从现有会话中查找
+    let session = chatStore.sessions.find(s => s.sessionId === Number(newId))
+
+    // 如果没有找到现有会话，且有查询参数，创建新会话
+    if (!session && route.query.kind) {
+      // 这里留空，由你来补充创建会话的逻辑
+      // 创建成功后，将新会话添加到列表最前面
+      if (session) {
+        chatStore.sessions.unshift(session)
       }
-    })
+    }
+
     if (session) {
       selectSession(session)
     }

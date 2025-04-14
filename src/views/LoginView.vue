@@ -42,6 +42,7 @@ import { useAuthStore } from '@/stores/auth'
 import { useRouter } from 'vue-router'
 import { useChatStore } from '@/stores/chat'
 import { useFriendStore } from '@/stores/friend'
+import { useGroupStore } from '@/stores/group'
 import { listMessage, sendMessage, ackMessage } from '@/api/chat'
 import wsClient from '@/utils/websocket'
 
@@ -50,6 +51,7 @@ import defaultAvatar from '@/assets/default-avatar.svg'
 
 const chatStore = useChatStore()
 const friendStore = useFriendStore()
+const groupStore = useGroupStore()
 const authStore = useAuthStore()
 const username = ref('')
 const password = ref('')
@@ -86,6 +88,7 @@ interface newMessageNotify {
   kind: string
   sessionId: number
   seq: number
+  toId: number
 }
 
 interface newMessage {
@@ -119,8 +122,11 @@ const initData = async () => {
     loading.value = true
     // 获取好友列表
     await friendStore.fetchFriends()
+    // 获取群组列表
+    await groupStore.fetchGroups()
     // 获取会话列表
     await chatStore.fetchSessions()
+
     // 获取消息
     chatStore.sessions.forEach(async session => {
         const response = await listMessage({
@@ -154,7 +160,13 @@ const initData = async () => {
     // 监听新消息通知
     wsClient.addGlobalCallback(7, async (content: string) => {
         const notify: newMessageNotify = JSON.parse(content)
-        let session = chatStore.sessionMap.get(notify.sessionId)
+        let session
+        if(notify.kind === 'group') {
+          let sessionId = chatStore.groupSessionMap.get(notify.toId)
+          session = chatStore.sessionMap.get(sessionId as number)
+        } else if (notify.kind === 'single') {
+          session = chatStore.sessionMap.get(notify.sessionId)
+        }
         if (!session) {
           await chatStore.fetchSessions()
           session = chatStore.sessionMap.get(notify.sessionId)
@@ -180,7 +192,15 @@ const initData = async () => {
           const body: Body = JSON.parse(msg.content)
           sessionId = body.sessionId
           kind = body.kind
-          const session = chatStore.sessionMap.get(body.sessionId)
+
+          let session
+          if(kind === 'group') {
+            sessionId = chatStore.groupSessionMap.get(body.toId) as number
+            session = chatStore.sessionMap.get(sessionId)
+          } else if (kind === 'single') {
+            session = chatStore.sessionMap.get(sessionId)
+          }
+
           if (session) {
             session.messages.push({
               id: body.id,
@@ -196,6 +216,10 @@ const initData = async () => {
           }
         })
         if (maxSeq > 0 && kind !== "" && sessionId !== 0) {
+            let session = chatStore.sessionMap.get(sessionId)
+            if(session) {
+              session.offset = maxSeq
+            }
             const ackMessage: AckMessage = {
               type: 6,
               kind: kind,
@@ -211,6 +235,7 @@ const initData = async () => {
     })
   } catch (error) {
     console.error('初始化数据失败:', error)
+    throw error
   } finally {
     loading.value = false
   }

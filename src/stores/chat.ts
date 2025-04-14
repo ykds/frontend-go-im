@@ -30,6 +30,7 @@ export const useChatStore = defineStore('chat', () => {
   const sessions = ref<Session[]>([])
   const sessionMap = ref<Map<number, Session>>(new Map())
   const userSessionMap = ref<Map<number, number>>(new Map())
+  const groupSessionMap = ref<Map<number, number>>(new Map())
   const currentSessionId = ref<number | null>(null)
   const loading = ref(false)
   const error = ref<string | null>(null)
@@ -38,22 +39,56 @@ export const useChatStore = defineStore('chat', () => {
     error.value = null
     try {
       const response = await getSessions()
-      sessions.value = response.list.map((item: any) => ({
-        sessionId: item.sessionId,
-        kind: item.kind,
-        groupId: item.groupId,
-        groupName: item.groupName,
-        groupAvatar: item.groupAvatar,
-        friendId: item.friendId,
-        friendName: item.friendName,
-        friendAvatar: item.friendAvatar,
-        seq: item.seq,
-        messages: [],
-        lastMessage: '',
-        offset: 0,
-      }))
-      sessionMap.value = new Map(sessions.value.map(session => [session.sessionId, session]))
-      userSessionMap.value = new Map(sessions.value.map(session => [session.friendId, session.sessionId]))
+
+      const newSessions = response.list.filter(item => !sessions.value.some(session => session.sessionId === item.sessionId))
+      if(sessions.value.length > 0) {
+        newSessions.forEach(item => {
+          sessions.value.push({
+            sessionId: item.sessionId,
+            kind: item.kind,
+            groupId: item.groupId,
+            groupName: item.groupName,
+            groupAvatar: item.groupAvatar,
+            friendId: item.friendId,
+            friendName: item.friendName,
+            friendAvatar: item.friendAvatar,
+            seq: item.seq,
+            messages: [],
+            lastMessage: '',
+            offset: 0,
+          })
+          sessionMap.value.set(item.sessionId, sessions.value[sessions.value.length - 1])
+          if (item.kind === 'single') {
+            userSessionMap.value.set(item.friendId, item.sessionId)
+          } else if (item.kind === 'group') {
+            groupSessionMap.value.set(item.groupId, item.sessionId)
+          }
+        })
+
+      } else {
+        sessions.value = response.list.map((item: any) => ({
+          sessionId: item.sessionId,
+            kind: item.kind,
+            groupId: item.groupId,
+            groupName: item.groupName,
+            groupAvatar: item.groupAvatar,
+            friendId: item.friendId,
+            friendName: item.friendName,
+            friendAvatar: item.friendAvatar,
+            seq: item.seq,
+            messages: [],
+            lastMessage: '',
+            offset: 0,
+        }))
+        sessionMap.value = new Map(sessions.value.map(session => [session.sessionId, session]))
+        sessions.value.forEach(session => {
+          if (session.kind === 'single') {
+            userSessionMap.value.set(session.friendId, session.sessionId)
+          } else if (session.kind === 'group') {
+            groupSessionMap.value.set(session.groupId, session.sessionId)
+          }
+        })
+      }
     } catch (err) {
       error.value = '获取会话列表失败'
       console.error('获取会话列表失败:', err)
@@ -73,6 +108,7 @@ export const useChatStore = defineStore('chat', () => {
     loading,
     error,
     fetchSessions,
-    setCurrentSession
+    setCurrentSession,
+    groupSessionMap,
   }
 })

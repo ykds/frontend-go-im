@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import LoginView from '@/views/LoginView.vue'
 import FriendView from '@/views/FriendView.vue'
 import ChatView from '@/views/ChatView.vue'
+import GroupView from '@/views/GroupView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -17,6 +18,11 @@ const router = createRouter({
       component: FriendView
     },
     {
+      path: '/group',
+      name: 'group',
+      component: GroupView
+    },
+    {
       path: '/chat',
       name: 'chat',
       component: ChatView
@@ -25,7 +31,10 @@ const router = createRouter({
       path: '/chat/:id',
       name: 'chat-detail',
       component: ChatView,
-      props: true
+      props: route => ({
+        id: route.params.id,
+        ...route.query
+      })
     }
   ]
 })

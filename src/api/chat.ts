@@ -23,13 +23,14 @@ export async function sendMessage(data: SendMessageParams, data2: GetSeqReq) {
 interface SessionInfo {
   sessionId: number
 	kind:         string
-	groupId:      string
+	groupId:      number
 	groupName:    string
 	groupAvatar:    string
 	friendId:    number
-	frienName:    string
+	friendName:    string
 	friendAvatar: string
 	seq:          number
+  offset:       number
 }
 
 
