@@ -185,7 +185,13 @@ watch(() => selectedSession.value, () => {
 // 监听路由参数变化
 watch(() => route.params.id, (newId) => {
   if (newId) {
-    const session = chatStore.sessions.find(s => s.sessionId === Number(newId))
+    const session = chatStore.sessions.find(s => {
+      if(route.query.kind === 'single') {
+        return s.friendId === Number(newId)
+      } else if(route.query.kind === 'group') {
+        return s.groupId === Number(newId)
+      }
+    })
     if (session) {
       selectSession(session)
     }

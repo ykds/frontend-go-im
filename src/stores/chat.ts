@@ -29,6 +29,7 @@ interface Message {
 export const useChatStore = defineStore('chat', () => {
   const sessions = ref<Session[]>([])
   const sessionMap = ref<Map<number, Session>>(new Map())
+  const userSessionMap = ref<Map<number, number>>(new Map())
   const currentSessionId = ref<number | null>(null)
   const loading = ref(false)
   const error = ref<string | null>(null)
@@ -52,6 +53,7 @@ export const useChatStore = defineStore('chat', () => {
         offset: 0,
       }))
       sessionMap.value = new Map(sessions.value.map(session => [session.sessionId, session]))
+      userSessionMap.value = new Map(sessions.value.map(session => [session.friendId, session.sessionId]))
     } catch (err) {
       error.value = '获取会话列表失败'
       console.error('获取会话列表失败:', err)

@@ -73,12 +73,28 @@ const selectFriend = (friend: Friend) => {
 
 const handleSendMessage = () => {
   if (selectedFriend.value) {
-    router.push(`/chat/${selectedFriend.value.userId}`)
+    router.push({
+      name: 'chat-detail',
+      params: {
+        id: selectedFriend.value.userId
+      },
+      query: {
+        kind: 'single',
+      }
+    })
   }
 }
 
 const handleDoubleClick = (friend: Friend) => {
-  router.push(`/chat/${friend.userId}`)
+  router.push({
+    name: 'chat-detail',
+    params: {
+      id: friend.userId
+    },
+    query: {
+      kind: 'single',
+    }
+  })
 }
 
 onMounted(() => {
