@@ -39,7 +39,6 @@ export const useChatStore = defineStore('chat', () => {
     error.value = null
     try {
       const response = await getSessions()
-
       const newSessions = response.list.filter(item => !sessions.value.some(session => session.sessionId === item.sessionId))
       if(sessions.value.length > 0) {
         newSessions.forEach(item => {
@@ -55,7 +54,7 @@ export const useChatStore = defineStore('chat', () => {
             seq: item.seq,
             messages: [],
             lastMessage: '',
-            offset: 0,
+            offset: item.seq+1,
           })
           sessionMap.value.set(item.sessionId, sessions.value[sessions.value.length - 1])
           if (item.kind === 'single') {
@@ -78,7 +77,7 @@ export const useChatStore = defineStore('chat', () => {
             seq: item.seq,
             messages: [],
             lastMessage: '',
-            offset: 0,
+            offset: item.seq+1,
         }))
         sessionMap.value = new Map(sessions.value.map(session => [session.sessionId, session]))
         sessions.value.forEach(session => {

@@ -7,6 +7,13 @@ interface Group {
   groupNo: number
   name: string
   avatar: string
+  members: MemberInfo[]
+}
+
+interface MemberInfo {
+  id: number
+  name: string
+  avatar: string
 }
 
 interface ListGroupResponse {
@@ -18,6 +25,7 @@ export const useGroupStore = defineStore('group', () => {
   const loading = ref(false)
   const error = ref<string | null>(null)
   const groupMap = ref<Record<string, Group>>({})
+  const memberMap = ref<Record<string, Record<string, MemberInfo>>>({})
 
   const fetchGroups = async () => {
     try {
@@ -27,6 +35,12 @@ export const useGroupStore = defineStore('group', () => {
       groups.value = response.groups
       response.groups.forEach(group => {
         groupMap.value[group.id] = group
+      })
+      groups.value.forEach(group => {
+        memberMap.value[group.id] = {}
+        group.members.forEach(member => {
+          memberMap.value[group.id][member.id] = member
+        })
       })
     } catch (err) {
       error.value = '获取群组列表失败'
@@ -42,5 +56,6 @@ export const useGroupStore = defineStore('group', () => {
     error,
     fetchGroups,
     groupMap,
+    memberMap,
   }
 })

@@ -82,7 +82,8 @@
 import { ref, watch, nextTick } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useChatStore } from '@/stores/chat'
-import { sendMessage } from '@/api/chat'
+import { sendMessage, getSeq } from '@/api/chat'
+import wsClient from '@/utils/websocket'
 
 import defaultAvatar from '@/assets/default-avatar.svg'
 
@@ -129,6 +130,15 @@ const selectSession = (session: Session) => {
   chatStore.setCurrentSession(session.sessionId)
 }
 
+interface AckMessage {
+	type: number
+  kind: string
+	sessionId: number
+	id: number
+	seq: number
+}
+
+
 const sendMsg = async () => {
   if (!newMessage.value.trim() || !selectedSession.value) return
 
@@ -137,11 +147,15 @@ const sendMsg = async () => {
       if (selectedSession.value.kind === 'group') {
         toid = selectedSession.value.groupId
       }
+      const seq = await getSeq({
+        to_id: toid,
+        kind: selectedSession.value.kind
+      })
       await sendMessage({
           kind: selectedSession.value.kind,
           toId: toid,
           message: newMessage.value,
-          seq: 0
+          seq: seq
         }, {
           to_id: toid,
           kind: selectedSession.value.kind
@@ -156,6 +170,21 @@ const sendMsg = async () => {
     selectedSession.value.messages.push(message)
     selectedSession.value.lastMessage = newMessage.value
     newMessage.value = ''
+
+    if (selectedSession.value.kind === 'group') {
+      const ackMessage: AckMessage = {
+        type: 6,
+        kind: selectedSession.value.kind,
+        sessionId: selectedSession.value.sessionId,
+        id: 0,
+        seq: seq
+      }
+      wsClient.send({
+        type: 1,
+        content: JSON.stringify(ackMessage)
+      })
+      selectedSession.value.offset = seq + 1
+    }
   } catch(error) {
     console.error('发送消息失败:', error)
   }

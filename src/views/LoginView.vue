@@ -69,7 +69,7 @@ const handleLogin = async () => {
     })
     // 保存token
     localStorage.setItem('token', token)
-    await initData()
+    initData()
     router.push('/chat')
   } catch (err) {
     error.value = authStore.error || '登录失败，请重试'
@@ -129,12 +129,14 @@ const initData = async () => {
 
     // 获取消息
     chatStore.sessions.forEach(async session => {
+        let maxSeq = 0;
         const response = await listMessage({
           fromId: session.friendId,
           groupId: session.groupId,
-          seq: session.seq,
+          seq: session.offset,
           kind: session.kind
         })
+
         response.list.forEach(item => {
           let sender = ""
           let avatar = ""
@@ -142,8 +144,8 @@ const initData = async () => {
             sender = friendStore.friendMap[item.fromId]?.username || '未知'
             avatar = friendStore.friendMap[item.fromId]?.avatar || defaultAvatar
           } else if (item.kind === 'group') {
-            sender = '群组'
-            avatar = defaultAvatar
+            sender = groupStore.memberMap[session.groupId][item.fromId]?.name || '未知'
+            avatar = groupStore.memberMap[session.groupId][item.fromId]?.avatar || defaultAvatar
           }
           session.messages.push({
             id: item.id,
@@ -152,7 +154,17 @@ const initData = async () => {
             sender: sender,
             avatar: avatar,
           })
+          if (item.seq > maxSeq) {
+            maxSeq = item.seq
+          }
         })
+        if (maxSeq > 0) {
+          ackMessage({
+              sessionId: session.sessionId,
+              seq: maxSeq
+            })
+          session.offset = maxSeq+1
+        }
     })
     // 连接websocket
     wsClient.connect()
@@ -194,11 +206,17 @@ const initData = async () => {
           kind = body.kind
 
           let session
+          let sender = ""
+          let avatar = ""
           if(kind === 'group') {
             sessionId = chatStore.groupSessionMap.get(body.toId) as number
             session = chatStore.sessionMap.get(sessionId)
+            sender = groupStore.memberMap[body.toId][body.fromId]?.name || '未知'
+            avatar = groupStore.memberMap[body.toId][body.fromId]?.avatar || defaultAvatar
           } else if (kind === 'single') {
             session = chatStore.sessionMap.get(sessionId)
+            sender = friendStore.friendMap[body.fromId]?.username || '未知'
+            avatar = friendStore.friendMap[body.fromId]?.avatar || defaultAvatar
           }
 
           if (session) {
@@ -206,24 +224,17 @@ const initData = async () => {
               id: body.id,
               content: body.content,
               isSelf: false,
-              sender: friendStore.friendMap[body.fromId]?.username || '未知',
-              avatar: friendStore.friendMap[body.fromId]?.avatar || defaultAvatar,
+              sender: sender,
+              avatar: avatar,
             })
             session.lastMessage = body.content
             if (body.seq > maxSeq) {
               maxSeq = body.seq
             }
-          }
-        })
-        if (maxSeq > 0 && kind !== "" && sessionId !== 0) {
-            let session = chatStore.sessionMap.get(sessionId)
-            if(session) {
-              session.offset = maxSeq
-            }
             const ackMessage: AckMessage = {
               type: 6,
               kind: kind,
-              sessionId: sessionId,
+              sessionId: session.sessionId,
               id: 0,
               seq: maxSeq
             }
@@ -231,7 +242,9 @@ const initData = async () => {
               type: 1,
               content: JSON.stringify(ackMessage)
             })
-        }
+            session.offset = maxSeq+1
+          }
+        })
     })
   } catch (error) {
     console.error('初始化数据失败:', error)

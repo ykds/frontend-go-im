@@ -13,10 +13,12 @@ export function ackMessage(data: AckMessageReq) {
   return request.put('/api/message', data)
 }
 
+export function getSeq(data: GetSeqReq) {
+  return wsrequest.get<number>('/seq', {params: data})
+}
+
 // 发送消息
 export async function sendMessage(data: SendMessageParams, data2: GetSeqReq) {
-  const seq = await wsrequest.get<number>('/seq', {params: data2})
-  data.seq = seq
   return request.post<string>('/api/message', data)
 }
 
