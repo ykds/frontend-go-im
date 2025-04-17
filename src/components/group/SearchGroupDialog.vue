@@ -12,6 +12,8 @@
           v-model="groupNo"
           placeholder="请输入群号"
           @keyup.enter="handleSearch"
+          maxlength="11"
+          oninput="value=value.replace(/[^\d]/g,'')"
         >
           <template #append>
             <el-button @click="handleSearch" :loading="loading">
@@ -47,7 +49,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, defineProps, defineEmits, watch } from 'vue'
+import { ref, defineProps, defineEmits, watch, onMounted } from 'vue'
 import { ElMessage, ElDialog, ElInput, ElButton } from 'element-plus'
 import defaultAvatar from '@/assets/default-avatar.svg'
 import { searchGroup, applyJoinGroup } from '@/api/group'
@@ -97,11 +99,10 @@ const handleSearch = async () => {
   try {
     loading.value = true
     const response = await searchGroup({ groupNo: parseInt(groupNo.value) })
-    console.log(response)
     searchResult.value = response.infos
-  } catch (error) {
-    ElMessage.error('搜索失败')
-    console.error('搜索失败:', error)
+  } catch (error: any) {
+    searchResult.value = null
+    ElMessage.error(error.message)
   } finally {
     loading.value = false
   }
@@ -115,9 +116,8 @@ const handleApply = async (groupNo: number) => {
     await applyJoinGroup({ group_no: groupNo})
     ElMessage.success('申请已发送')
     dialogVisible.value = false
-  } catch (error) {
-    ElMessage.error('申请失败')
-    console.error('申请失败:', error)
+  } catch (error: any) {
+    ElMessage.error(error.message)
   } finally {
     applyLoading.value = false
   }

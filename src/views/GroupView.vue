@@ -62,7 +62,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import GroupDetail from '@/components/group/GroupDetail.vue'
 import SearchGroupDialog from '@/components/group/SearchGroupDialog.vue'
@@ -116,6 +116,9 @@ const handleDoubleClick = (group: Group) => {
 const handleSearchClick = () => {
   searchDialogVisible.value = true
 }
+onMounted(() => {
+  searchDialogVisible.value = false
+})
 </script>
 
 <style scoped>
