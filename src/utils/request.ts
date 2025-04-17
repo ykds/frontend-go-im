@@ -80,9 +80,11 @@ const wsapi: AxiosInstance = axios.create({
 wsapi.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token')
-    if (token !== "undefined") {
-      config.headers.token = token
+    if (!token) {
+      window.location.href = '/login'
+      return Promise.reject('No token found')
     }
+    config.headers.token = token
     return config
   },
   (error) => {
@@ -92,27 +94,15 @@ wsapi.interceptors.request.use(
 
 // 响应拦截器
 wsapi.interceptors.response.use(
-  (response: AxiosResponse<ApiResponse>) => {
-    const { code, message, data } = response.data
-
-    if (code !== 200) {
-      const error: ApiError = {
-        code,
-        message,
-        data
-      }
-      return Promise.reject(error)
-    }
-
+  (response) => {
     return response
   },
-  (error: AxiosError) => {
-    const apiError: ApiError = {
-      code: error.response?.status || 500,
-      message: error.message || '请求失败',
-      data: error.response?.data
+  (error) => {
+    if (error.response && error.response.status === 401) {
+      localStorage.removeItem('token')
+      window.location.href = '/login'
     }
-    return Promise.reject(apiError)
+    return Promise.reject(error)
   }
 )
 

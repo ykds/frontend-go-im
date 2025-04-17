@@ -1,5 +1,17 @@
 <script setup lang="ts">
 import { RouterView } from 'vue-router'
+import { onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
+
+onMounted(() => {
+  // 检查token是否存在
+  const token = localStorage.getItem('token')
+  if (!token && router.currentRoute.value.path !== '/login') {
+    router.push('/login')
+  }
+})
 </script>
 
 <template>

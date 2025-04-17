@@ -26,7 +26,17 @@
         </div>
       </div>
       <div class="group-list">
-        <h2 class="list-title">群组列表</h2>
+        <div class="list-header">
+          <h2 class="list-title">群组列表</h2>
+          <div class="list-actions">
+            <button class="action-button" @click="handleSearchClick">
+              <i class="icon-search"></i>
+            </button>
+            <button class="action-button">
+              <i class="icon-plus"></i>
+            </button>
+          </div>
+        </div>
         <div v-if="groupStore.groups.length === 0" class="empty-state">
           <img src="@/assets/empty-groups.svg" alt="暂无群组" class="empty-image" />
           <p class="empty-text">暂无群组，快去加入吧</p>
@@ -42,6 +52,11 @@
       <div class="group-detail" :class="{ 'empty': !selectedGroup }">
         <GroupDetail v-if="selectedGroup" :group="selectedGroup" @send-message="handleSendMessage" />
       </div>
+
+      <!-- 搜索群组对话框 -->
+      <SearchGroupDialog
+        v-model="searchDialogVisible"
+      />
     </div>
   </div>
 </template>
@@ -50,8 +65,10 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import GroupDetail from '@/components/group/GroupDetail.vue'
+import SearchGroupDialog from '@/components/group/SearchGroupDialog.vue'
 import defaultAvatar from '@/assets/default-avatar.svg'
 import { useGroupStore } from '@/stores/group'
+
 interface Group {
   id: number
   groupNo: number
@@ -64,6 +81,7 @@ const groupStore = useGroupStore()
 const router = useRouter()
 const currentPage = ref('groups')
 const selectedGroup = ref<Group | null>(null)
+const searchDialogVisible = ref(false)
 
 const selectGroup = (group: Group) => {
   selectedGroup.value = group
@@ -93,6 +111,10 @@ const handleDoubleClick = (group: Group) => {
       kind: 'group'
     }
   })
+}
+
+const handleSearchClick = () => {
+  searchDialogVisible.value = true
 }
 </script>
 
@@ -170,13 +192,55 @@ const handleDoubleClick = (group: Group) => {
   background: var(--color-white);
 }
 
+.list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--color-border);
+}
+
 .list-title {
   font-size: 18px;
   font-weight: 600;
   color: var(--color-text);
-  margin-bottom: 20px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid var(--color-border);
+  margin: 0;
+}
+
+.list-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.action-button {
+  width: 28px;
+  height: 28px;
+  border: none;
+  background-color: var(--color-primary);
+  color: white;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.action-button:hover {
+  background-color: var(--color-primary-dark);
+  transform: scale(1.05);
+}
+
+.icon-search::before {
+  content: '🔍';
+  font-size: 14px;
+}
+
+.icon-plus::before {
+  content: '+';
+  font-size: 18px;
+  font-weight: bold;
 }
 
 .group-item {

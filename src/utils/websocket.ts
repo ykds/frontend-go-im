@@ -68,7 +68,11 @@ class WebSocketClient {
         this.isConnected.value = false
         // 连接关闭时停止心跳
         this.stopHeartbeat()
-        // this.reconnect()
+        // 检查token是否存在
+        const token = localStorage.getItem('token')
+        if (!token) {
+          window.location.href = '/login'
+        }
       }
 
       this.ws.onerror = (error) => {
@@ -78,6 +82,11 @@ class WebSocketClient {
           url: this.ws?.url,
           error
         })
+        // 检查token是否存在
+        const token = localStorage.getItem('token')
+        if (!token) {
+          window.location.href = '/login'
+        }
       }
 
     } catch (error) {
