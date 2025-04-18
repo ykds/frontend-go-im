@@ -60,6 +60,7 @@ interface GroupInfo {
   avatar: string
   memberCount: number
   groupNo: number
+  owner_id: number
 }
 
 const props = defineProps({
@@ -99,7 +100,7 @@ const handleSearch = async () => {
   try {
     loading.value = true
     const response = await searchGroup({ groupNo: parseInt(groupNo.value) })
-    searchResult.value = response.data.infos
+    searchResult.value = response.infos
     searchResult.value.forEach(group => {
       group.avatar = "http://localhost:8080" + group.avatar
     })

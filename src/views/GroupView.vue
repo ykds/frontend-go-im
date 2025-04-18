@@ -35,6 +35,9 @@
             <button class="action-button" @click="handleCreateClick">
               <i class="icon-plus"></i>
             </button>
+            <button class="action-button" @click="handleApplyClick">
+              <i class="icon-bell"></i>
+            </button>
           </div>
         </div>
         <div v-if="groupStore.groups.length === 0" class="empty-state">
@@ -62,6 +65,11 @@
       <CreateGroupDialog
         v-model="createDialogVisible"
       />
+
+      <!-- 群申请通知对话框 -->
+      <GroupApplyDialog
+        v-model="applyDialogVisible"
+      />
     </div>
   </div>
 </template>
@@ -72,6 +80,7 @@ import { useRouter } from 'vue-router'
 import GroupDetail from '@/components/group/GroupDetail.vue'
 import SearchGroupDialog from '@/components/group/SearchGroupDialog.vue'
 import CreateGroupDialog from '@/components/group/CreateGroupDialog.vue'
+import GroupApplyDialog from '@/components/group/GroupApplyDialog.vue'
 import defaultAvatar from '@/assets/default-avatar.svg'
 import { useGroupStore } from '@/stores/group'
 
@@ -89,6 +98,7 @@ const currentPage = ref('groups')
 const selectedGroup = ref<Group | null>(null)
 const searchDialogVisible = ref(false)
 const createDialogVisible = ref(false)
+const applyDialogVisible = ref(false)
 
 const selectGroup = (group: Group) => {
   selectedGroup.value = group
@@ -128,10 +138,14 @@ const handleCreateClick = () => {
   createDialogVisible.value = true
 }
 
+const handleApplyClick = () => {
+  applyDialogVisible.value = true
+}
+
 onMounted(() => {
   searchDialogVisible.value = false
   createDialogVisible.value = false
-
+  applyDialogVisible.value = false
 })
 </script>
 
@@ -258,6 +272,11 @@ onMounted(() => {
   content: '+';
   font-size: 18px;
   font-weight: bold;
+}
+
+.icon-bell::before {
+  content: '🔔';
+  font-size: 14px;
 }
 
 .group-item {
