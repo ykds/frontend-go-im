@@ -32,7 +32,7 @@
             <button class="action-button" @click="handleSearchClick">
               <i class="icon-search"></i>
             </button>
-            <button class="action-button">
+            <button class="action-button" @click="handleCreateClick">
               <i class="icon-plus"></i>
             </button>
           </div>
@@ -57,6 +57,11 @@
       <SearchGroupDialog
         v-model="searchDialogVisible"
       />
+
+      <!-- 创建群组对话框 -->
+      <CreateGroupDialog
+        v-model="createDialogVisible"
+      />
     </div>
   </div>
 </template>
@@ -66,6 +71,7 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import GroupDetail from '@/components/group/GroupDetail.vue'
 import SearchGroupDialog from '@/components/group/SearchGroupDialog.vue'
+import CreateGroupDialog from '@/components/group/CreateGroupDialog.vue'
 import defaultAvatar from '@/assets/default-avatar.svg'
 import { useGroupStore } from '@/stores/group'
 
@@ -82,6 +88,7 @@ const router = useRouter()
 const currentPage = ref('groups')
 const selectedGroup = ref<Group | null>(null)
 const searchDialogVisible = ref(false)
+const createDialogVisible = ref(false)
 
 const selectGroup = (group: Group) => {
   selectedGroup.value = group
@@ -116,8 +123,15 @@ const handleDoubleClick = (group: Group) => {
 const handleSearchClick = () => {
   searchDialogVisible.value = true
 }
+
+const handleCreateClick = () => {
+  createDialogVisible.value = true
+}
+
 onMounted(() => {
   searchDialogVisible.value = false
+  createDialogVisible.value = false
+
 })
 </script>
 

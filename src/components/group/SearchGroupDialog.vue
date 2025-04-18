@@ -99,7 +99,10 @@ const handleSearch = async () => {
   try {
     loading.value = true
     const response = await searchGroup({ groupNo: parseInt(groupNo.value) })
-    searchResult.value = response.infos
+    searchResult.value = response.data.infos
+    searchResult.value.forEach(group => {
+      group.avatar = "http://localhost:8080" + group.avatar
+    })
   } catch (error: any) {
     searchResult.value = null
     ElMessage.error(error.message)
@@ -113,7 +116,7 @@ const handleApply = async (groupNo: number) => {
 
   try {
     applyLoading.value = true
-    await applyJoinGroup({ group_no: groupNo})
+    await applyJoinGroup(groupNo)
     ElMessage.success('申请已发送')
     dialogVisible.value = false
   } catch (error: any) {

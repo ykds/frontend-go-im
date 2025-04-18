@@ -1,11 +1,8 @@
-import { request } from '@/utils/request'
+import request from '@/utils/request'
 
-export function searchGroup(data: SearchGroupParams) {
-  return request.get<SearchGroupResponse>('/api/group/search', {params: data})
-}
-
-interface SearchGroupParams {
-  groupNo: number
+interface CreateGroupParams {
+  name: string
+  avatar: string
 }
 
 interface SearchGroupResponse {
@@ -20,12 +17,27 @@ interface GroupInfo {
   groupNo: number
 }
 
-
-export function applyJoinGroup(data: ApplyJoinGroupParams) {
-  return request.post('/api/group/apply', data)
+export const createGroup = (data: CreateGroupParams) => {
+  return request({
+    url: '/api/group',
+    method: 'post',
+    data
+  })
 }
 
-interface ApplyJoinGroupParams {
-  group_no: number
+export const searchGroup = (params: { groupNo: number }) => {
+  return request<SearchGroupResponse>({
+    url: '/api/group/search',
+    method: 'get',
+    params
+  })
+}
+
+export const applyJoinGroup = (groupNo: number) => {
+  return request({
+    url: '/api/group/apply',
+    method: 'post',
+    data: { groupNo }
+  })
 }
 
