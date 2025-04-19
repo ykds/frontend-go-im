@@ -29,7 +29,17 @@
         </div>
       </div>
       <div class="friend-list">
-        <h2 class="list-title">好友列表</h2>
+        <div class="list-header">
+          <h2 class="list-title">好友列表</h2>
+          <div class="list-actions">
+            <el-button circle>
+              <el-icon><Plus /></el-icon>
+            </el-button>
+            <el-button circle>
+              <el-icon><Bell /></el-icon>
+            </el-button>
+          </div>
+        </div>
         <div v-if="friendStore.friends.length === 0" class="empty-state">
           <img src="@/assets/empty-friends.svg" alt="暂无好友" class="empty-image" />
           <p class="empty-text">暂无好友，快去添加吧</p>
@@ -55,6 +65,7 @@ import { useFriendStore } from '@/stores/friend'
 import FriendDetail from '@/components/friend/FriendDetail.vue'
 import defaultAvatar from '@/assets/default-avatar.svg'
 import { useRouter } from 'vue-router'
+import { Plus, Bell } from '@element-plus/icons-vue'
 
 interface Friend {
   userId: string
@@ -210,13 +221,29 @@ onMounted(() => {
   background: var(--color-white);
 }
 
+.list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--color-border);
+  min-width: 0;
+}
+
 .list-title {
   font-size: 18px;
   font-weight: 600;
   color: var(--color-text);
-  margin-bottom: 20px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid var(--color-border);
+  margin: 0;
+  white-space: nowrap;
+  margin-right: 8px;
+}
+
+.list-actions {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
 }
 
 .friend-item {

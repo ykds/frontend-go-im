@@ -1,10 +1,6 @@
 <template>
   <div class="chat-container">
     <div class="chat-content" :class="{ 'loading': loading }">
-      <!-- <div v-if="loading" class="loading-overlay">
-        <div class="loading-spinner"></div>
-        <span class="loading-text">加载中...</span>
-      </div> -->
       <div class="nav-sidebar">
         <div class="nav-item" :class="{ active: currentPage === 'chats' }" @click="currentPage = 'chats'">
           <svg class="nav-icon" viewBox="0 0 24 24">
@@ -33,7 +29,9 @@
         </div>
       </div>
       <div class="chat-list">
-        <h2 class="list-title">会话列表</h2>
+        <div class="list-header">
+          <h2 class="list-title">会话列表</h2>
+        </div>
         <div v-if="chatStore.sessions.length === 0" class="empty-state">
           <img src="@/assets/empty-chats.svg" alt="暂无会话" class="empty-image" />
           <p class="empty-text">暂无会话，快去和好友聊天吧</p>
@@ -341,13 +339,23 @@ watch(() => route.params.id, async (newId) => {
   background: var(--color-white);
 }
 
+.list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--color-border);
+  min-width: 0;
+}
+
 .list-title {
   font-size: 18px;
   font-weight: 600;
   color: var(--color-text);
-  margin-bottom: 20px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid var(--color-border);
+  margin: 0;
+  white-space: nowrap;
+  margin-right: 8px;
 }
 
 .chat-item {
@@ -399,10 +407,12 @@ watch(() => route.params.id, async (newId) => {
 
 .chat-box {
   flex: 1;
+  padding: 24px;
   display: flex;
-  flex-direction: column;
   background: var(--color-white);
+  border-left: 1px solid var(--color-border);
   min-height: 100%;
+  width: 500px;
 }
 
 .chat-box.empty {

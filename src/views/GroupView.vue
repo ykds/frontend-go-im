@@ -29,15 +29,15 @@
         <div class="list-header">
           <h2 class="list-title">群组列表</h2>
           <div class="list-actions">
-            <button class="action-button" @click="handleSearchClick">
-              <i class="icon-search"></i>
-            </button>
-            <button class="action-button" @click="handleCreateClick">
-              <i class="icon-plus"></i>
-            </button>
-            <button class="action-button" @click="handleApplyClick">
-              <i class="icon-bell"></i>
-            </button>
+            <el-button circle @click="handleSearchClick">
+              <el-icon><Search /></el-icon>
+            </el-button>
+            <el-button circle @click="handleCreateClick">
+              <el-icon><Plus /></el-icon>
+            </el-button>
+            <el-button circle @click="handleApplyClick">
+              <el-icon><Bell /></el-icon>
+            </el-button>
           </div>
         </div>
         <div v-if="groupStore.groups.length === 0" class="empty-state">
@@ -83,6 +83,7 @@ import CreateGroupDialog from '@/components/group/CreateGroupDialog.vue'
 import GroupApplyDialog from '@/components/group/GroupApplyDialog.vue'
 import defaultAvatar from '@/assets/default-avatar.svg'
 import { useGroupStore } from '@/stores/group'
+import { Search, Plus, Bell } from '@element-plus/icons-vue'
 
 interface Group {
   id: number
@@ -230,6 +231,7 @@ onMounted(() => {
   margin-bottom: 20px;
   padding-bottom: 10px;
   border-bottom: 1px solid var(--color-border);
+  min-width: 0;
 }
 
 .list-title {
@@ -237,11 +239,14 @@ onMounted(() => {
   font-weight: 600;
   color: var(--color-text);
   margin: 0;
+  white-space: nowrap;
+  margin-right: 8px;
 }
 
 .list-actions {
   display: flex;
-  gap: 8px;
+  gap: 4px;
+  flex-shrink: 0;
 }
 
 .action-button {
