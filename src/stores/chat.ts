@@ -110,4 +110,6 @@ export const useChatStore = defineStore('chat', () => {
     setCurrentSession,
     groupSessionMap,
   }
+}, {
+  persist: true
 })

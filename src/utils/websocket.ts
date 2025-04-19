@@ -17,22 +17,17 @@ type Callback = (data: any) => void
 
 class WebSocketClient {
   private ws: WebSocket | null = null
-  private options: WebSocketOptions
-  private reconnectAttempts = 0
-  private reconnectTimer: number | null = null
-  private messageHandlers: Map<number, Callback> = new Map()
-  private heartbeatTimer: number | null = null
-
-  public isConnected = ref(false)
-
-  constructor(options: WebSocketOptions) {
-    this.options = {
-      reconnectInterval: 3000,
-      maxReconnectAttempts: 5,
-      heartbeatInterval: 50000,
-      ...options
-    }
+  private options = {
+    url: 'ws://localhost:8081/ws',
+    reconnectInterval: 1000,
+    maxReconnectAttempts: 5,
+    heartbeatInterval: 50000
   }
+  private reconnectAttempts = 0
+  private heartbeatInterval: number | null = null
+  private messageCallbacks: Map<number, (content: string) => void> = new Map()
+  private globalCallbacks: Map<number, (content: string) => void> = new Map()
+  private isConnected = ref(false)
 
   connect() {
     if (this.ws) {
@@ -40,7 +35,13 @@ class WebSocketClient {
     }
 
     try {
-      this.ws = new WebSocket(this.options.url + "?token=" + localStorage.getItem('token'))
+      const token = localStorage.getItem('token')
+      if (!token) {
+        console.log('No token found, not connecting WebSocket')
+        return
+      }
+
+      this.ws = new WebSocket(this.options.url + "?token=" + token)
 
       this.isConnected.value = true
       this.reconnectAttempts = 0
@@ -50,7 +51,6 @@ class WebSocketClient {
         console.log('WebSocket connected')
         this.isConnected.value = true
         this.reconnectAttempts = 0
-        // 连接成功后启动心跳
         this.startHeartbeat()
       }
 
@@ -66,13 +66,8 @@ class WebSocketClient {
       this.ws.onclose = () => {
         console.log('WebSocket closed')
         this.isConnected.value = false
-        // 连接关闭时停止心跳
         this.stopHeartbeat()
-        // 检查token是否存在
-        const token = localStorage.getItem('token')
-        if (!token) {
-          window.location.href = '/login'
-        }
+        this.reconnect()
       }
 
       this.ws.onerror = (error) => {
@@ -82,16 +77,12 @@ class WebSocketClient {
           url: this.ws?.url,
           error
         })
-        // 检查token是否存在
-        const token = localStorage.getItem('token')
-        if (!token) {
-          window.location.href = '/login'
-        }
+        this.reconnect()
       }
 
     } catch (error) {
       console.error('Failed to create WebSocket:', error)
-      // this.reconnect()
+      this.reconnect()
     }
   }
 
@@ -100,7 +91,7 @@ class WebSocketClient {
     this.stopHeartbeat()
 
     // 创建新的心跳定时器
-    this.heartbeatTimer = window.setInterval(() => {
+    this.heartbeatInterval = window.setInterval(() => {
       if (this.ws && this.ws.readyState === WebSocket.OPEN) {
         // 这里发送心跳消息，具体内容由用户填充
         this.send({
@@ -108,36 +99,33 @@ class WebSocketClient {
           content: '' // 心跳消息内容
         })
       }
-    }, this.options.heartbeatInterval)
+    }, this.options.heartbeatInterval || 50000)
   }
 
   private stopHeartbeat() {
-    if (this.heartbeatTimer) {
-      clearInterval(this.heartbeatTimer)
-      this.heartbeatTimer = null
+    if (this.heartbeatInterval) {
+      clearInterval(this.heartbeatInterval)
+      this.heartbeatInterval = null
     }
   }
 
   private reconnect() {
-    if (this.reconnectAttempts >= (this.options.maxReconnectAttempts || 5)) {
-      console.error('Max reconnection attempts reached')
+    if (this.reconnectAttempts >= this.options.maxReconnectAttempts) {
+      console.log('Max reconnection attempts reached')
       return
     }
 
-    if (this.reconnectTimer) {
-      clearTimeout(this.reconnectTimer)
-    }
+    this.reconnectAttempts++
+    console.log(`Attempting to reconnect (${this.reconnectAttempts}/${this.options.maxReconnectAttempts})`)
 
-    this.reconnectTimer = window.setTimeout(() => {
-      this.reconnectAttempts++
-      console.log(`Reconnecting... Attempt ${this.reconnectAttempts}`)
+    setTimeout(() => {
       this.connect()
     }, this.options.reconnectInterval)
   }
 
   private handleMessage(message: Message) {
     // 调用特定类型的处理函数
-    const handler = this.messageHandlers.get(message.type)
+    const handler = this.messageCallbacks.get(message.type)
     if (handler) {
       handler(message.content)
     }
@@ -157,13 +145,13 @@ class WebSocketClient {
   }
 
   // 注册全局回调函数
-  addGlobalCallback(key: number, callback: Callback) {
-    this.messageHandlers.set(key, callback)
+  addGlobalCallback(key: number, callback: (content: string) => void) {
+    this.globalCallbacks.set(key, callback)
   }
 
   // 移除全局回调函数
   removeGlobalCallback(key: number) {
-    this.messageHandlers.delete(key)
+    this.globalCallbacks.delete(key)
   }
 
   close() {
@@ -171,18 +159,11 @@ class WebSocketClient {
       this.ws.close()
       this.ws = null
     }
-    if (this.reconnectTimer) {
-      clearTimeout(this.reconnectTimer)
-      this.reconnectTimer = null
-    }
-    // 关闭时停止心跳
     this.stopHeartbeat()
   }
 }
 
 // 创建全局WebSocket实例
-const wsClient = new WebSocketClient({
-  url: 'ws://localhost:8081/ws'
-})
+const wsClient = new WebSocketClient()
 
 export default wsClient

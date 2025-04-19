@@ -58,4 +58,6 @@ export const useGroupStore = defineStore('group', () => {
     groupMap,
     memberMap,
   }
+}, {
+  persist: true
 })

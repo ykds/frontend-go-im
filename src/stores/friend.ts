@@ -42,4 +42,6 @@ export const useFriendStore = defineStore('friend', () => {
     fetchFriends,
     friendMap,
   }
+}, {
+  persist: true
 })
