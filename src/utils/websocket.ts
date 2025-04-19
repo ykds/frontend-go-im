@@ -67,7 +67,7 @@ class WebSocketClient {
         console.log('WebSocket closed')
         this.isConnected.value = false
         this.stopHeartbeat()
-        this.reconnect()
+        // this.reconnect()
       }
 
       this.ws.onerror = (error) => {
@@ -77,12 +77,12 @@ class WebSocketClient {
           url: this.ws?.url,
           error
         })
-        this.reconnect()
+        // this.reconnect()
       }
 
     } catch (error) {
       console.error('Failed to create WebSocket:', error)
-      this.reconnect()
+      // this.reconnect()
     }
   }
 

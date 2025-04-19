@@ -252,7 +252,6 @@ watch(() => route.params.id, async (newId) => {
   width: 80vw;
   max-width: 1200px;
   background: var(--color-white);
-  border-radius: 8px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
 }
 
@@ -356,12 +355,14 @@ watch(() => route.params.id, async (newId) => {
   margin: 0;
   white-space: nowrap;
   margin-right: 8px;
+  margin-bottom: 3px;
 }
 
 .chat-item {
   display: flex;
   align-items: center;
-  padding: 12px;
+  padding: 11px;
+  padding-left: 12px;
   cursor: pointer;
   border-radius: 8px;
   transition: all 0.3s ease;

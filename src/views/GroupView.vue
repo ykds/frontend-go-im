@@ -28,14 +28,29 @@
       <div class="group-list">
         <div class="list-header">
           <h2 class="list-title">群组列表</h2>
-          <div class="list-actions">
-            <el-button circle @click="handleSearchClick">
-              <el-icon><Search /></el-icon>
-            </el-button>
-            <el-button circle @click="handleCreateClick">
+          <div class="header-actions">
+            <el-button
+              type="primary"
+              size="small"
+              circle
+              @click="handleCreateClick"
+            >
               <el-icon><Plus /></el-icon>
             </el-button>
-            <el-button circle @click="handleApplyClick">
+            <el-button
+              type="primary"
+              size="small"
+              circle
+              @click="handleSearchClick"
+            >
+              <el-icon><Search /></el-icon>
+            </el-button>
+            <el-button
+              type="info"
+              size="small"
+              circle
+              @click="handleApplyClick"
+            >
               <el-icon><Bell /></el-icon>
             </el-button>
           </div>
@@ -243,45 +258,9 @@ onMounted(() => {
   margin-right: 8px;
 }
 
-.list-actions {
+.header-actions {
   display: flex;
-  gap: 4px;
-  flex-shrink: 0;
-}
-
-.action-button {
-  width: 28px;
-  height: 28px;
-  border: none;
-  background-color: var(--color-primary);
-  color: white;
-  border-radius: 50%;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s ease;
-}
-
-.action-button:hover {
-  background-color: var(--color-primary-dark);
-  transform: scale(1.05);
-}
-
-.icon-search::before {
-  content: '🔍';
-  font-size: 14px;
-}
-
-.icon-plus::before {
-  content: '+';
-  font-size: 18px;
-  font-weight: bold;
-}
-
-.icon-bell::before {
-  content: '🔔';
-  font-size: 14px;
+  gap: 8px;
 }
 
 .group-item {

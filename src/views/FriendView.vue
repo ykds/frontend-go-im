@@ -31,11 +31,21 @@
       <div class="friend-list">
         <div class="list-header">
           <h2 class="list-title">好友列表</h2>
-          <div class="list-actions">
-            <el-button circle>
+          <div class="header-actions">
+            <el-button
+              type="primary"
+              size="small"
+              circle
+              @click="showSearchDialog = true"
+            >
               <el-icon><Plus /></el-icon>
             </el-button>
-            <el-button circle>
+            <el-button
+              type="info"
+              size="small"
+              circle
+              @click="showApplyDialog = true"
+            >
               <el-icon><Bell /></el-icon>
             </el-button>
           </div>
@@ -56,6 +66,8 @@
         <FriendDetail v-if="selectedFriend" :friend="selectedFriend" @send-message="handleSendMessage" />
       </div>
     </div>
+    <SearchUserDialog v-model="showSearchDialog" />
+    <FriendApplyDialog v-model="showApplyDialog" />
   </div>
 </template>
 
@@ -66,6 +78,8 @@ import FriendDetail from '@/components/friend/FriendDetail.vue'
 import defaultAvatar from '@/assets/default-avatar.svg'
 import { useRouter } from 'vue-router'
 import { Plus, Bell } from '@element-plus/icons-vue'
+import SearchUserDialog from '@/components/friend/SearchUserDialog.vue'
+import FriendApplyDialog from '@/components/friend/FriendApplyDialog.vue'
 
 interface Friend {
   userId: string
@@ -77,6 +91,8 @@ const router = useRouter()
 const friendStore = useFriendStore()
 const currentPage = ref('friends')
 const selectedFriend = ref<Friend | null>(null)
+const showSearchDialog = ref(false)
+const showApplyDialog = ref(false)
 
 const selectFriend = (friend: Friend) => {
   selectedFriend.value = friend
@@ -240,10 +256,9 @@ onMounted(() => {
   margin-right: 8px;
 }
 
-.list-actions {
+.header-actions {
   display: flex;
-  gap: 4px;
-  flex-shrink: 0;
+  gap: 8px;
 }
 
 .friend-item {
