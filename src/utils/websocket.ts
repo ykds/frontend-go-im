@@ -154,12 +154,13 @@ class WebSocketClient {
     this.globalCallbacks.delete(key)
   }
 
-  close() {
+  disconnect() {
     if (this.ws) {
       this.ws.close()
       this.ws = null
+      this.isConnected.value = false
+      this.stopHeartbeat()
     }
-    this.stopHeartbeat()
   }
 }
 

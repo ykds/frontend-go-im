@@ -174,7 +174,7 @@ const initData = async () => {
         const notify: newMessageNotify = JSON.parse(content)
         let session
         if(notify.kind === 'group') {
-          let sessionId = chatStore.groupSessionMap.get(notify.toId)
+          let sessionId = chatStore.gsMap.get(notify.toId)
           session = chatStore.sessionMap.get(sessionId as number)
         } else if (notify.kind === 'single') {
           session = chatStore.sessionMap.get(notify.sessionId)
@@ -209,7 +209,7 @@ const initData = async () => {
           let sender = ""
           let avatar = ""
           if(kind === 'group') {
-            sessionId = chatStore.groupSessionMap.get(body.toId) as number
+            sessionId = chatStore.gsMap.get(body.toId) as number
             session = chatStore.sessionMap.get(sessionId)
             sender = groupStore.memberMap[body.toId][body.fromId]?.name || '未知'
             avatar = groupStore.memberMap[body.toId][body.fromId]?.avatar || defaultAvatar

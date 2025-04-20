@@ -3,12 +3,13 @@ import LoginView from '@/views/LoginView.vue'
 import FriendView from '@/views/FriendView.vue'
 import ChatView from '@/views/ChatView.vue'
 import GroupView from '@/views/GroupView.vue'
+import ProfileView from '@/views/ProfileView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
-      path: '/',
+      path: '/login',
       name: 'login',
       component: LoginView
     },
@@ -35,6 +36,11 @@ const router = createRouter({
         id: route.params.id,
         ...route.query
       })
+    },
+    {
+      path: '/profile',
+      name: 'profile',
+      component: ProfileView
     }
   ]
 })

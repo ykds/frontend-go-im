@@ -18,7 +18,7 @@
             <path d="M3.41 22.75C3.28 22.75 3.15 22.72 3.03 22.66C2.78 22.53 2.62 22.27 2.62 22V17C2.62 13.9 5.03 11.5 8.13 11.5H15.88C18.98 11.5 21.38 13.9 21.38 17V22C21.38 22.27 21.22 22.53 20.97 22.66C20.72 22.79 20.42 22.75 20.21 22.57L12 14.36L3.79 22.57C3.66 22.69 3.54 22.75 3.41 22.75Z"/>
           </svg>
         </div>
-        <div class="nav-item" :class="{ active: currentPage === 'profile' }" @click="currentPage = 'profile'">
+        <div class="nav-item" :class="{ active: currentPage === 'profile' }" @click="router.push('/profile')">
           <svg class="nav-icon" viewBox="0 0 24 24">
             <path d="M12 12C14.21 12 16 10.21 16 8C16 5.79 14.21 4 12 4C9.79 4 8 5.79 8 8C8 10.21 9.79 12 12 12ZM12 14C9.33 14 4 15.34 4 18V20H20V18C20 15.34 14.67 14 12 14Z"/>
           </svg>

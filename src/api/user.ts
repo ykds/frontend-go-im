@@ -64,4 +64,12 @@ export interface RejectFriendApplyParams {
   status: number
 }
 
+export function getUserInfo() {
+  return request.get<UserInfo>('/api/user/info')
+}
+
+export function updateUserInfo(data: Partial<UserInfo>) {
+  return request.put('/api/user/info', data)
+}
+
 

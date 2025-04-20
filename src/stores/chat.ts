@@ -30,7 +30,7 @@ export const useChatStore = defineStore('chat', () => {
   const sessions = ref<Session[]>([])
   const sessionMap = ref<Map<number, Session>>(new Map())
   const userSessionMap = ref<Map<number, number>>(new Map())
-  const groupSessionMap = ref<Map<number, number>>(new Map())
+  const gsMap = ref<Map<number, number>>(new Map())
   const currentSessionId = ref<number | null>(null)
   const loading = ref(false)
   const error = ref<string | null>(null)
@@ -60,7 +60,7 @@ export const useChatStore = defineStore('chat', () => {
           if (item.kind === 'single') {
             userSessionMap.value.set(item.friendId, item.sessionId)
           } else if (item.kind === 'group') {
-            groupSessionMap.value.set(item.groupId, item.sessionId)
+            gsMap.value.set(item.friendId, item.sessionId)
           }
         })
 
@@ -84,7 +84,7 @@ export const useChatStore = defineStore('chat', () => {
           if (session.kind === 'single') {
             userSessionMap.value.set(session.friendId, session.sessionId)
           } else if (session.kind === 'group') {
-            groupSessionMap.value.set(session.groupId, session.sessionId)
+            gsMap.value.set(session.friendId, session.sessionId)
           }
         })
       }
@@ -108,7 +108,7 @@ export const useChatStore = defineStore('chat', () => {
     error,
     fetchSessions,
     setCurrentSession,
-    groupSessionMap,
+    gsMap,
   }
 }, {
   persist: true
