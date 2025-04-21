@@ -31,6 +31,9 @@
         <button type="submit" class="login-button" :disabled="loading">
           {{ loading ? '登录中...' : '登录' }}
         </button>
+        <div class="register-link">
+          还没有账号？<a @click="router.push('/register')">立即注册</a>
+        </div>
       </form>
     </div>
   </div>
@@ -246,6 +249,10 @@ const initData = async () => {
           }
         })
     })
+
+    wsClient.addGlobalCallback(3, (content: string) => {
+      
+    })
   } catch (error) {
     console.error('初始化数据失败:', error)
     throw error
@@ -372,6 +379,22 @@ const initData = async () => {
 .input-field:disabled {
   background: #f1f5f9;
   cursor: not-allowed;
+}
+
+.register-link {
+  text-align: center;
+  margin-top: 1rem;
+  font-size: 0.875rem;
+}
+
+.register-link a {
+  color: var(--color-primary);
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.register-link a:hover {
+  text-decoration: underline;
 }
 
 @media (max-width: 480px) {

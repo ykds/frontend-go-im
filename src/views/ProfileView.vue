@@ -190,6 +190,9 @@ const handleLogout = () => {
 onMounted(async ()  => {
   const user = await getUserInfo()
   userInfo.value = user
+  if(user.avatar) {
+    userInfo.value.avatar = "http://localhost:8080" + user.avatar
+  }
   editForm.value = { ...user }
 })
 </script>

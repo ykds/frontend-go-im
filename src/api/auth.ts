@@ -14,3 +14,16 @@ export interface UserInfo {
 export const login = async (data: LoginRequest): Promise<string> => {
   return request.post<string>('/api/user/login', data)
 }
+
+export const register = async (data: RegisterData): Promise<void> => {
+  return request.post('/api/user/register', data)
+}
+
+export interface RegisterData {
+  phone: string
+  username: string
+  password: string
+  confirm_password: string
+  avatar: string
+  gender: string
+}
