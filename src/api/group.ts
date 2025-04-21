@@ -42,8 +42,8 @@ export const searchGroup = (params: { groupNo: number }) => {
   return request.get<SearchGroupResponse>('/api/group/search', { params })
 }
 
-export const applyJoinGroup = (groupId: number) => {
-  return request.post('/api/group/apply', { groupId })
+export const applyJoinGroup = (groupNo: number) => {
+  return request.post('/api/group/apply', { group_no: groupNo })
 }
 
 export const getGroupApplies = () => {

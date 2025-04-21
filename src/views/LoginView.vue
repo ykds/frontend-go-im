@@ -50,6 +50,7 @@ import { listMessage, sendMessage, ackMessage } from '@/api/chat'
 import wsClient from '@/utils/websocket'
 
 import defaultAvatar from '@/assets/default-avatar.svg'
+import { mapState } from 'pinia'
 
 
 const chatStore = useChatStore()
@@ -97,6 +98,10 @@ interface newMessageNotify {
 interface newMessage {
   type: number
   content: string
+}
+
+interface notifyMessage {
+  type: number
 }
 
 interface Body {
@@ -250,9 +255,28 @@ const initData = async () => {
         })
     })
 
-    wsClient.addGlobalCallback(3, (content: string) => {
-      
+    wsClient.addGlobalCallback(3, async (content: string) => {
+      const msg: notifyMessage = JSON.parse(content)
+      if(msg.type === 4) {
+        friendStore.hasUnreadFriendApply = true
+      }
+      if(msg.type === 5) {
+        await friendStore.fetchFriends()
+      }
     })
+
+    wsClient.addGlobalCallback(8, async (content: string) => {
+      // TODO ack
+      const msg: notifyMessage = JSON.parse(content)
+      if(msg.type === 9) {
+        groupStore.hasUnreadGroupApply = true
+      }
+      if(msg.type === 10) {
+        await groupStore.fetchGroups()
+        await chatStore.fetchSessions()
+      }
+    })
+
   } catch (error) {
     console.error('初始化数据失败:', error)
     throw error

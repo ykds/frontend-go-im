@@ -12,11 +12,31 @@ interface ListFriendResponse {
   list: Friend[]
 }
 
+interface FriendApply {
+  userId: string
+  username: string
+  avatar: string
+}
+
+export interface ListFriendApplyResponse {
+  list: FriendApplyInfo[]
+}
+
+export interface FriendApplyInfo {
+  applyId: number
+  userId: number
+  username: string
+  avatar: string
+}
+
 export const useFriendStore = defineStore('friend', () => {
   const friends = ref<Friend[]>([])
   const loading = ref(false)
   const error = ref<string | null>(null)
   const friendMap = ref<Record<string, Friend>>({})
+  const friendApplyList = ref<FriendApply[]>([])
+  const hasUnreadFriendApply = ref(false)
+  const applyList = ref<FriendApplyInfo[]>([])
 
   const fetchFriends = async () => {
     try {
@@ -35,12 +55,26 @@ export const useFriendStore = defineStore('friend', () => {
     }
   }
 
+  const fetchApply = async () => {
+    try {
+      const response = await request.get<ListFriendApplyResponse>('/api/friends/apply')
+      applyList.value = response.list
+    } catch (error: any) {
+      error.value = '获取好友申请列表失败'
+      throw error
+    }
+  }
+
   return {
     friends,
+    applyList,
     loading,
     error,
     fetchFriends,
+    fetchApply,
     friendMap,
+    friendApplyList,
+    hasUnreadFriendApply,
   }
 }, {
   persist: true

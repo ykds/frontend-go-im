@@ -12,7 +12,7 @@
             :show-file-list="false"
             :before-upload="beforeAvatarUpload"
           >
-            <img v-if="avatarUrl" :src="avatarUrl" class="avatar" />
+            <img v-if="avatarUrl" :src="'http://localhost:8080'+avatarUrl" class="avatar" />
             <el-icon v-else class="avatar-uploader-icon"><Plus /></el-icon>
           </el-upload>
           <div class="upload-tip">点击上传头像</div>
@@ -100,7 +100,6 @@ const router = useRouter()
 const loading = ref(false)
 const error = ref<string | null>(null)
 const avatarUrl = ref('')
-const avatarUrl2 = ref('')
 
 interface RegisterForm {
   phone: string
@@ -136,8 +135,7 @@ const beforeAvatarUpload: UploadProps['beforeUpload'] = async (file) => {
     loading.value = true
     const response = await uploadFile(file)
     if (response.url) {
-      avatarUrl2.value = response.url
-      avatarUrl.value = "http://localhost:8080" + response.url
+      avatarUrl.value = response.url
       ElMessage.success('头像上传成功')
     } else {
       ElMessage.error('头像上传失败')
@@ -183,7 +181,7 @@ const handleRegister = async () => {
       username: form.value.username,
       password: form.value.password,
       confirm_password: form.value.confirmPassword,
-      avatar: avatarUrl2.value,
+      avatar: avatarUrl.value,
       gender: form.value.gender,
     })
     router.push('/login')

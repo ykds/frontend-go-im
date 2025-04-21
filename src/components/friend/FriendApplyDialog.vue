@@ -5,9 +5,9 @@
     width="30%"
     :close-on-click-modal="false"
   >
-    <div v-if="applyList.length > 0" class="apply-list">
-      <div v-for="apply in applyList" :key="apply.applyId" class="apply-item">
-        <img :src="apply.avatar || defaultAvatar" class="user-avatar" />
+    <div v-if="friendStore.applyList.length > 0" class="apply-list">
+      <div v-for="apply in friendStore.applyList" :key="apply.applyId" class="apply-item">
+        <img :src="apply.avatar ? 'http://localhost:8080'+apply.avatar : defaultAvatar" class="user-avatar" />
         <span class="user-name">{{ apply.username }}</span>
         <div class="action-buttons">
           <el-button
@@ -36,10 +36,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed, watch } from 'vue'
+import { ref, computed, watch } from 'vue'
 import defaultAvatar from '@/assets/default-avatar.svg'
 import { ElMessage } from 'element-plus'
-import { listFriendApply, approveFriendApply, rejectFriendApply } from '@/api/user'
+import { approveFriendApply, rejectFriendApply } from '@/api/user'
 import { useFriendStore } from '@/stores/friend'
 export interface ApplyInfo {
   applyId: number
@@ -61,20 +61,11 @@ const dialogVisible = computed({
   set: (value) => emit('update:modelValue', value)
 })
 
-const applyList = ref<ApplyInfo[]>([])
 const processingId = ref<number | null>(null)
 const processingType = ref<'approve' | 'reject' | null>(null)
 
 const friendStore = useFriendStore()
 
-const fetchApplyList = async () => {
-  try {
-    const response = await listFriendApply()
-    applyList.value = response.list
-  } catch (error: any) {
-    ElMessage.error('获取好友申请列表失败:'+error.message)
-  }
-}
 
 const handleApprove = async (applyId: number) => {
   try {
@@ -82,7 +73,11 @@ const handleApprove = async (applyId: number) => {
     processingType.value = 'approve'
     await approveFriendApply({ applyId: applyId, status: 2 })
     ElMessage.success('已同意好友申请')
-    await fetchApplyList()
+
+    friendStore.applyList.filter(apply => {
+      apply.applyId !== applyId
+    })
+
     await friendStore.fetchFriends()
   } catch (error: any) {
     ElMessage.error('同意好友申请失败:'+error.message)
@@ -98,7 +93,9 @@ const handleReject = async (applyId: number) => {
     processingType.value = 'reject'
     await rejectFriendApply({ applyId: applyId, status: 3 })
     ElMessage.success('已拒绝好友申请')
-    await fetchApplyList()
+    friendStore.applyList.filter(apply => {
+      apply.applyId !== applyId
+    })
   } catch (error: any) {
     ElMessage.error('拒绝好友申请失败:'+error.message)
   } finally {
@@ -107,13 +104,9 @@ const handleReject = async (applyId: number) => {
   }
 }
 
-onMounted(() => {
-  fetchApplyList()
-})
-
 watch(() => props.modelValue, (newVal) => {
   if (newVal) {
-    fetchApplyList()
+    friendStore.fetchApply()
   }
 })
 </script>

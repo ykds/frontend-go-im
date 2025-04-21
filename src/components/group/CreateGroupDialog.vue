@@ -14,7 +14,7 @@
           :show-file-list="false"
           :before-upload="beforeAvatarUpload"
         >
-          <img v-if="avatarUrl" :src="avatarUrl" class="avatar" />
+          <img v-if="avatarUrl" :src="'http://localhost:8080'+avatarUrl" class="avatar" />
           <el-icon v-else class="avatar-uploader-icon"><Plus /></el-icon>
         </el-upload>
         <div class="upload-tip">点击上传群头像</div>
@@ -58,7 +58,6 @@ const emit = defineEmits(['update:modelValue'])
 
 const dialogVisible = ref(false)
 const avatarUrl = ref('')
-const avatarUrl2 = ref('')
 const groupName = ref('')
 const loading = ref(false)
 
@@ -92,8 +91,7 @@ const beforeAvatarUpload: UploadProps['beforeUpload'] = async (file) => {
     loading.value = true
     const response = await uploadFile(file)
     if (response.url) {
-      avatarUrl2.value = response.url
-      avatarUrl.value = "http://localhost:8080" + response.url
+      avatarUrl.value = response.url
       ElMessage.success('头像上传成功')
     } else {
       ElMessage.error('头像上传失败')
@@ -117,7 +115,7 @@ const handleCreate = async () => {
     loading.value = true
     await createGroup({
       name: groupName.value,
-      avatar: avatarUrl2.value || '' // 如果没有上传头像，传空字符串
+      avatar: avatarUrl.value || '' // 如果没有上传头像，传空字符串
     })
     ElMessage.success('创建成功')
     dialogVisible.value = false

@@ -1,6 +1,6 @@
 <template>
   <div class="friend-detail">
-    <img :src="friend.avatar || defaultAvatar" :alt="friend.username" class="avatar" />
+    <img :src="friend.avatar?'http://localhost:8080'+friend.avatar : defaultAvatar" :alt="friend.username" class="avatar" />
     <h2>{{ friend.username }}</h2>
     <!-- <p v-if="friend.remark">备注: {{ friend.remark }}</p> -->
     <!-- <p>性别: {{ friend.gender === 1 ? '男' : '女' }}</p> -->

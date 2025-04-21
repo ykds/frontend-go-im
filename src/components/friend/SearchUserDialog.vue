@@ -19,7 +19,7 @@
 
     <div v-if="searchResults.length > 0" class="results-container">
       <div v-for="user in searchResults" :key="user.id" class="result-item">
-        <img :src="user.avatar || defaultAvatar" class="user-avatar" />
+        <img :src="user.avatar ? 'http://localhost:8080' + user.avatar : defaultAvatar" class="user-avatar" />
         <span class="user-name">{{ user.username }}</span>
         <el-button
           type="primary"
@@ -76,7 +76,6 @@ const handleSearch = async () => {
   try {
     const response = await searchUser({ phone: searchQuery.value })
     searchResults.value = response.list
-    hasSearched.value = true
   } catch (error: any) {
     ElMessage.error('搜索用户失败:'+error.message)
   }

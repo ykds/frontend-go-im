@@ -26,7 +26,7 @@
       <!-- 搜索结果 -->
       <div v-if="searchResult" class="search-result">
         <div class="group-item" v-for="group in searchResult" :key="group.id">
-          <img :src="group.avatar || defaultAvatar" alt="群头像" class="group-avatar" />
+          <img :src="group.avatar?'http://localhost:8080'+group.avatar : defaultAvatar" alt="群头像" class="group-avatar" />
           <div class="group-info">
             <div class="group-name">{{ group.name }}</div>
             <div class="group-details">
@@ -101,9 +101,6 @@ const handleSearch = async () => {
     loading.value = true
     const response = await searchGroup({ groupNo: parseInt(groupNo.value) })
     searchResult.value = response.infos
-    searchResult.value.forEach(group => {
-      group.avatar = "http://localhost:8080" + group.avatar
-    })
   } catch (error: any) {
     searchResult.value = null
     ElMessage.error(error.message)

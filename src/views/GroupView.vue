@@ -50,8 +50,10 @@
               size="small"
               circle
               @click="handleApplyClick"
+              class="notification-button"
             >
               <el-icon><Bell /></el-icon>
+              <div v-if="groupStore.hasUnreadGroupApply" class="notification-badge"></div>
             </el-button>
           </div>
         </div>
@@ -63,7 +65,7 @@
              class="group-item"
              @click="selectGroup(group)"
              @dblclick="handleDoubleClick(group)">
-          <img :src="group.avatar || defaultAvatar" :alt="group.name" class="group-avatar" />
+          <img :src="group.avatar? 'http://localhost:8080' + group.avatar : defaultAvatar" :alt="group.name" class="group-avatar" />
           <span class="group-name">{{ group.name }}</span>
         </div>
       </div>
@@ -154,8 +156,10 @@ const handleCreateClick = () => {
   createDialogVisible.value = true
 }
 
-const handleApplyClick = () => {
+const handleApplyClick = async () => {
   applyDialogVisible.value = true
+  groupStore.hasUnreadGroupApply = false
+  await groupStore.fetchapply()
 }
 
 onMounted(() => {
@@ -324,5 +328,21 @@ onMounted(() => {
 .empty-text {
   color: var(--color-text-secondary);
   font-size: 14px;
+}
+
+.notification-button {
+  position: relative;
+}
+
+.notification-badge {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 10px;
+  height: 10px;
+  background-color: #f56c6c;
+  border-radius: 50%;
+  border: 2px solid var(--color-white);
+  transform: translate(50%, -50%);
 }
 </style>

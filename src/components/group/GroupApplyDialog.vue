@@ -5,18 +5,18 @@
     width="500px"
     :close-on-click-modal="false"
   >
-    <div v-if="applies.length === 0" class="empty-text">
+    <div v-if="groupStore.applies.length === 0" class="empty-text">
       暂无申请
     </div>
     <div v-else class="apply-list">
-      <div v-for="group in applies" class="group-apply">
+      <div v-for="group in groupStore.applies" class="group-apply">
         <div class="group-header">
-          <el-avatar :size="40" :src="group.avatar" />
+          <img :src="group.avatar? 'http://localhost:8080' + group.avatar : defaultAvatar" :alt="group.name" class="group-avatar" />
           <span class="group-name">{{ group.name }}</span>
         </div>
         <div class="user-list">
           <div v-for="user in group.apply" class="user-item">
-            <el-avatar :size="32" :src="user.avatar" />
+            <img :src="user.avatar? 'http://localhost:8080' + user.avatar : defaultAvatar" :alt="user.name" class="group-avatar" />
             <span class="user-name">{{ user.name }}</span>
             <div class="action-buttons">
               <el-button
@@ -44,34 +44,25 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref } from 'vue'
 import { ElMessage } from 'element-plus'
-import { getGroupApplies, approveGroupApply, rejectGroupApply, type GroupApplyInfo } from '@/api/group'
+import { approveGroupApply, rejectGroupApply } from '@/api/group'
+import { useGroupStore } from '@/stores/group'
+import defaultAvatar from '@/assets/default-avatar.svg'
 
 const visible = ref(false)
-const applies = ref<GroupApplyInfo[]>([])
 const loading = ref<Record<string, boolean>>({})
-
-const loadApplies = async () => {
-  try {
-    const res = await getGroupApplies()
-    if(res.list) {
-      applies.value = res.list
-    }
-  } catch (error: any) {
-    ElMessage.error('加载申请列表失败' + error.message)
-  }
-}
+const groupStore = useGroupStore()
 
 const handleApprove = async (applyId: number) => {
   loading.value[applyId] = true
   try {
     await approveGroupApply(applyId)
     ElMessage.success('已同意申请')
-    applies.value.forEach(apply => {
+    groupStore.applies.forEach(apply => {
       apply.apply = apply.apply.filter(user => user.apply_id !== applyId)
     })
-    // loadApplies()
+    await groupStore.fetchGroups()
   } catch (error: any) {
     ElMessage.error('操作失败' + error.message)
   } finally {
@@ -84,20 +75,15 @@ const handleReject = async (applyId: number) => {
   try {
     await rejectGroupApply(applyId)
     ElMessage.success('已拒绝申请')
-    applies.value.forEach(apply => {
+    groupStore.applies.forEach(apply => {
       apply.apply = apply.apply.filter(user => user.apply_id !== applyId)
     })
-    // loadApplies()
   } catch (error: any) {
     ElMessage.error('操作失败' + error.message)
   } finally {
     loading.value[applyId] = false
   }
 }
-
-onMounted(() => {
-  loadApplies()
-})
 
 defineExpose({
   visible
@@ -144,5 +130,13 @@ defineExpose({
 .action-buttons {
   display: flex;
   gap: 8px;
+}
+
+.group-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  margin-right: 12px;
+  border: 2px solid var(--color-border);
 }
 </style>

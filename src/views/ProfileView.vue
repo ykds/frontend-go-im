@@ -39,7 +39,7 @@
         <div class="profile-body">
           <div class="avatar-section">
             <div class="avatar-wrapper">
-              <img :src="userInfo.avatar || defaultAvatar" class="profile-avatar" />
+              <img :src="userInfo.avatar?'http://localhost:8080'+userInfo.avatar : defaultAvatar" class="profile-avatar" />
             </div>
             <div class="username-section">
               <template v-if="isEditing">
@@ -190,9 +190,6 @@ const handleLogout = () => {
 onMounted(async ()  => {
   const user = await getUserInfo()
   userInfo.value = user
-  if(user.avatar) {
-    userInfo.value.avatar = "http://localhost:8080" + user.avatar
-  }
   editForm.value = { ...user }
 })
 </script>

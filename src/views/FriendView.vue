@@ -44,9 +44,11 @@
               type="info"
               size="small"
               circle
-              @click="showApplyDialog = true"
+              @click="handleApplyClick"
+              class="notification-button"
             >
               <el-icon><Bell /></el-icon>
+              <div v-if="friendStore.hasUnreadFriendApply" class="notification-badge"></div>
             </el-button>
           </div>
         </div>
@@ -58,7 +60,7 @@
              class="friend-item"
              @click="selectFriend(friend)"
              @dblclick="handleDoubleClick(friend)">
-          <img :src="friend.avatar || defaultAvatar" :alt="friend.username" class="friend-avatar" />
+          <img :src="friend.avatar ? 'http://localhost:8080' + friend.avatar : defaultAvatar" :alt="friend.username" class="friend-avatar" />
           <span class="friend-name">{{ friend.username }}</span>
         </div>
       </div>
@@ -96,6 +98,13 @@ const showApplyDialog = ref(false)
 
 const selectFriend = (friend: Friend) => {
   selectedFriend.value = friend
+}
+
+
+const handleApplyClick = async () => {
+  showApplyDialog.value = true
+  friendStore.hasUnreadFriendApply = false
+  await friendStore.fetchApply
 }
 
 const handleSendMessage = () => {
@@ -259,6 +268,22 @@ onMounted(() => {
 .header-actions {
   display: flex;
   gap: 8px;
+}
+
+.notification-button {
+  position: relative;
+}
+
+.notification-badge {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 10px;
+  height: 10px;
+  background-color: #f56c6c;
+  border-radius: 50%;
+  border: 2px solid var(--color-white);
+  transform: translate(50%, -50%);
 }
 
 .friend-item {

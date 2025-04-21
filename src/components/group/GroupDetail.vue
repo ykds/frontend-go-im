@@ -1,7 +1,8 @@
 <template>
   <div class="group-detail">
-    <img :src="group.avatar || defaultAvatar" :alt="group.name" class="avatar" />
+    <img :src="group.avatar ? 'http://localhost:8080' + group.avatar : defaultAvatar" :alt="group.name" class="avatar" />
     <h2>{{ group.name }}</h2>
+    <p>群号: {{ group.groupNo }}</p>
     <!-- <p>群成员: {{ group.memberCount }}人</p> -->
     <button @click="$emit('send-message')">发送消息</button>
   </div>

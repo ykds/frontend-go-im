@@ -18,10 +18,10 @@ app.use(pinia)
 app.use(router)
 app.use(ElementPlus)
 
+app.mount('#app')
+
 // 检查token并连接WebSocket
 const token = localStorage.getItem('token')
 if (token) {
   wsClient.connect()
 }
-
-app.mount('#app')

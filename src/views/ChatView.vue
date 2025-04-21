@@ -59,7 +59,7 @@
             <div v-for="message in selectedSession.messages" :key="message.id"
                  class="message-item"
                  :class="{ 'message-self': message.isSelf }">
-              <img :src="message.avatar || defaultAvatar" :alt="message.sender" class="message-avatar" />
+              <img :src="message.avatar?'http://localhost:8080'+message.avatar : defaultAvatar" :alt="message.sender" class="message-avatar" />
               <div class="message-content">
                 <span class="message-sender">{{ message.sender }}</span>
                 <div class="message-bubble">{{ message.content }}</div>

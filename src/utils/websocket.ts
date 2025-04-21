@@ -26,12 +26,11 @@ class WebSocketClient {
   private reconnectAttempts = 0
   private heartbeatInterval: number | null = null
   private messageCallbacks: Map<number, (content: string) => void> = new Map()
-  private globalCallbacks: Map<number, (content: string) => void> = new Map()
   private isConnected = ref(false)
 
   connect() {
-    if (this.ws) {
-      this.ws.close()
+    if (this.isConnected.value) {
+      return
     }
 
     try {
@@ -146,12 +145,12 @@ class WebSocketClient {
 
   // 注册全局回调函数
   addGlobalCallback(key: number, callback: (content: string) => void) {
-    this.globalCallbacks.set(key, callback)
+    this.messageCallbacks.set(key, callback)
   }
 
   // 移除全局回调函数
   removeGlobalCallback(key: number) {
-    this.globalCallbacks.delete(key)
+    this.messageCallbacks.delete(key)
   }
 
   disconnect() {
