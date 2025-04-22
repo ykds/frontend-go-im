@@ -63,7 +63,8 @@
         </div>
         <div v-else v-for="group in groupStore.groups" :key="group.id"
              class="group-item"
-             @click="selectGroup(group)"
+             :class="{ active: selectedGroup?.id === group.id }"
+             @click="toggleGroup(group)"
              @dblclick="handleDoubleClick(group)">
           <img :src="group.avatar? 'http://localhost:8080' + group.avatar : defaultAvatar" :alt="group.name" class="group-avatar" />
           <span class="group-name">{{ group.name }}</span>
@@ -101,6 +102,7 @@ import GroupApplyDialog from '@/components/group/GroupApplyDialog.vue'
 import defaultAvatar from '@/assets/default-avatar.svg'
 import { useGroupStore } from '@/stores/group'
 import { Search, Plus, Bell } from '@element-plus/icons-vue'
+import { useChatStore } from '@/stores/chat'
 
 interface Group {
   id: number
@@ -110,6 +112,7 @@ interface Group {
 }
 
 const groupStore = useGroupStore()
+const chatStore = useChatStore()
 
 const router = useRouter()
 const currentPage = ref('groups')
@@ -124,26 +127,28 @@ const selectGroup = (group: Group) => {
 
 const handleSendMessage = () => {
   if (selectedGroup.value) {
+    let sessionId = chatStore.gsMap.get(selectedGroup.value.id)
+    if (!sessionId) {
+      return
+    }
     router.push({
       name: 'chat-detail',
       params: {
-        id: selectedGroup.value.id
-      },
-      query: {
-        kind: 'group'
+        id: sessionId
       }
     })
   }
 }
 
 const handleDoubleClick = (group: Group) => {
+  let sessionId = chatStore.gsMap.get(group.id)
+  if (!sessionId) {
+    return
+  }
   router.push({
     name: 'chat-detail',
     params: {
-      id: group.id
-    },
-    query: {
-      kind: 'group'
+      id: sessionId
     }
   })
 }
@@ -160,6 +165,14 @@ const handleApplyClick = async () => {
   applyDialogVisible.value = true
   groupStore.hasUnreadGroupApply = false
   await groupStore.fetchapply()
+}
+
+const toggleGroup = (group: Group) => {
+  if (selectedGroup.value?.id === group.id) {
+    selectedGroup.value = null
+  } else {
+    selectedGroup.value = group
+  }
 }
 
 onMounted(() => {
@@ -281,6 +294,10 @@ onMounted(() => {
   background: var(--color-input-bg);
 }
 
+.group-item.active {
+  background: var(--color-primary-light);
+}
+
 .group-avatar {
   width: 40px;
   height: 40px;
@@ -301,13 +318,13 @@ onMounted(() => {
   background: var(--color-white);
   border-left: 1px solid var(--color-border);
   min-height: 100%;
-  width: 500px;
 }
 
 .group-detail.empty {
   background: var(--color-background);
   border-left: 1px dashed var(--color-border);
 }
+
 
 .empty-state {
   display: flex;

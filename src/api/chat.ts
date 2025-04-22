@@ -22,6 +22,18 @@ export async function sendMessage(data: SendMessageParams, data2: GetSeqReq) {
   return request.post<string>('/api/message', data)
 }
 
+export async function createSession(data: CreateSessionReq) {
+  return request.post<CreateSessionResp>('/api/message/session', data)
+}
+
+export interface CreateSessionReq {
+  friend_id: number
+}
+
+export interface CreateSessionResp{
+  session_id: number
+}
+
 interface SessionInfo {
   sessionId: number
 	kind:         string

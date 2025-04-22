@@ -113,6 +113,7 @@ import { useGroupStore } from '@/stores/group'
 import wsClient from '@/utils/websocket'
 import defaultAvatar from '@/assets/default-avatar.svg'
 import { getUserInfo } from '@/api/user'
+import { useUserStore } from '@/stores/user'
 
 interface UserInfo {
   username: string
@@ -126,6 +127,7 @@ const authStore = useAuthStore()
 const chatStore = useChatStore()
 const friendStore = useFriendStore()
 const groupStore = useGroupStore()
+const userStore = useUserStore()
 
 const currentPage = ref('profile')
 const isEditing = ref(false)
@@ -188,9 +190,9 @@ const handleLogout = () => {
 }
 
 onMounted(async ()  => {
-  const user = await getUserInfo()
-  userInfo.value = user
-  editForm.value = { ...user }
+  await userStore.fetchUserInfo()
+  userInfo.value = userStore.info as UserInfo
+  editForm.value = { ...userInfo.value }
 })
 </script>
 

@@ -36,21 +36,53 @@ const emit = defineEmits<{
   align-items: center;
   gap: 1rem;
   padding: 2rem;
+  width: 100%;
 }
 
 .avatar {
-  width: 100px;
-  height: 100px;
+  width: 120px;
+  height: 120px;
   border-radius: 50%;
   border: 2px solid var(--color-border);
+  transition: transform 0.3s ease;
+  cursor: pointer;
+}
+
+.avatar:hover {
+  transform: scale(1.05);
+}
+
+h2 {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--color-text);
+  margin: 0.5rem 0;
+}
+
+p {
+  font-size: 16px;
+  color: var(--color-text-secondary);
+  margin: 0.25rem 0;
 }
 
 button {
-  padding: 0.5rem 1rem;
+  margin-top: 1rem;
+  padding: 0.75rem 1.5rem;
   background: var(--color-primary);
   color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: 8px;
   cursor: pointer;
+  font-size: 16px;
+  transition: all 0.3s ease;
+}
+
+button:hover {
+  background: var(--color-primary-dark);
+  transform: translateY(-1px);
+}
+
+button:active {
+  transform: translateY(0);
 }
 </style>

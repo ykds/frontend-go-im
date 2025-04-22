@@ -77,9 +77,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, nextTick } from 'vue'
+import { ref, watch, nextTick, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useChatStore } from '@/stores/chat'
+import { useUserStore } from '@/stores/user'
 import { sendMessage, getSeq } from '@/api/chat'
 import wsClient from '@/utils/websocket'
 
@@ -112,6 +113,7 @@ interface Message {
 const router = useRouter()
 const route = useRoute()
 const chatStore = useChatStore()
+const userStore = useUserStore()
 
 const currentPage = ref('chats')
 const selectedSession = ref<Session | null>(null)
@@ -137,6 +139,7 @@ interface AckMessage {
 }
 
 
+
 const sendMsg = async () => {
   if (!newMessage.value.trim() || !selectedSession.value) return
 
@@ -160,9 +163,9 @@ const sendMsg = async () => {
         })
     const message: Message = {
       id: 0,
-      sender: '',
+      sender: userStore.info?.username as string,
       content: newMessage.value,
-      avatar: defaultAvatar,
+      avatar:  userStore.info?.avatar as string,
       isSelf: true
     }
     selectedSession.value.messages.push(message)
@@ -212,23 +215,24 @@ watch(() => selectedSession.value, () => {
 // 监听路由参数变化
 watch(() => route.params.id, async (newId) => {
   if (newId) {
-    // 从现有会话中查找
-    let session = chatStore.sessions.find(s => s.sessionId === Number(newId))
-
-    // 如果没有找到现有会话，且有查询参数，创建新会话
-    if (!session && route.query.kind) {
-      // 这里留空，由你来补充创建会话的逻辑
-      // 创建成功后，将新会话添加到列表最前面
-      if (session) {
-        chatStore.sessions.unshift(session)
-      }
+    const session = chatStore.sessionMap.get(Number(newId))
+    if (session) {
+      selectSession(session)
     }
+  }
+}, { immediate: true })
 
+// 组件挂载时初始化
+onMounted(async () => {
+  // 如果有路由参数，选择对应会话
+  if (route.params.id) {
+    const session = chatStore.sessionMap.get(Number(route.params.id))
     if (session) {
       selectSession(session)
     }
   }
 })
+
 </script>
 
 <style scoped>

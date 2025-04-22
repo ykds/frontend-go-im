@@ -13,7 +13,7 @@ import { defineProps, defineEmits } from 'vue'
 import defaultAvatar from '@/assets/default-avatar.svg'
 
 interface Friend {
-  userId: string
+  userId: number
   username: string
   avatar: string
   // remark?: string

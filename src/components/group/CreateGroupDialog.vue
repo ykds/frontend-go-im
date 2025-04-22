@@ -46,6 +46,8 @@ import { Plus } from '@element-plus/icons-vue'
 import type { UploadProps } from 'element-plus'
 import { createGroup } from '@/api/group'
 import { uploadFile } from '@/api/upload'
+import { useGroupStore } from '@/stores/group'
+import { useChatStore } from '@/stores/chat'
 
 const props = defineProps({
   modelValue: {
@@ -60,6 +62,8 @@ const dialogVisible = ref(false)
 const avatarUrl = ref('')
 const groupName = ref('')
 const loading = ref(false)
+const groupStore = useGroupStore()
+const chatStore = useChatStore()
 
 watch(() => props.modelValue, (val) => {
   dialogVisible.value = val
@@ -119,6 +123,8 @@ const handleCreate = async () => {
     })
     ElMessage.success('创建成功')
     dialogVisible.value = false
+    await groupStore.fetchGroups()
+    await chatStore.fetchSessions()
   } catch (error: any) {
     ElMessage.error(error.message)
     console.error(error)

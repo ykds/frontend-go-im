@@ -3,7 +3,7 @@ import { ref } from 'vue'
 import { request } from '@/utils/request'
 
 interface Friend {
-  userId: string
+  userId: number
   username: string
   avatar: string
 }

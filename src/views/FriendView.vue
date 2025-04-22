@@ -82,15 +82,19 @@ import { useRouter } from 'vue-router'
 import { Plus, Bell } from '@element-plus/icons-vue'
 import SearchUserDialog from '@/components/friend/SearchUserDialog.vue'
 import FriendApplyDialog from '@/components/friend/FriendApplyDialog.vue'
+import { useChatStore } from '@/stores/chat'
+import { createSession, type CreateSessionReq, type CreateSessionResp } from '@/api/chat'
+import { ElMessage } from 'element-plus'
 
 interface Friend {
-  userId: string
+  userId: number
   username: string
   avatar: string
 }
 
 const router = useRouter()
 const friendStore = useFriendStore()
+const chatStore = useChatStore()
 const currentPage = ref('friends')
 const selectedFriend = ref<Friend | null>(null)
 const showSearchDialog = ref(false)
@@ -104,31 +108,89 @@ const selectFriend = (friend: Friend) => {
 const handleApplyClick = async () => {
   showApplyDialog.value = true
   friendStore.hasUnreadFriendApply = false
-  await friendStore.fetchApply
+  await friendStore.fetchApply()
 }
 
-const handleSendMessage = () => {
+const handleSendMessage = async () => {
   if (selectedFriend.value) {
+    let sessionId = chatStore.userSessionMap.get(selectedFriend.value.userId)
+
+    if(!sessionId) {
+      try {
+        const response = await createSession({
+          friend_id: selectedFriend.value.userId,
+        })
+        sessionId = response.session_id
+        let s = {
+          sessionId: sessionId,
+          kind: 'single',
+          groupId: 0,
+          groupName: '',
+          groupAvatar: '',
+          friendId: selectedFriend.value.userId,
+          friendName: selectedFriend.value.username,
+          friendAvatar: selectedFriend.value.avatar,
+          seq: 0,
+          messages: [],
+          lastMessage: '',
+          offset: 1,
+        }
+        chatStore.sessions.push(s)
+        chatStore.sessionMap.set(s.sessionId, s);
+        chatStore.userSessionMap.set(selectedFriend.value.userId, s.sessionId);
+      } catch(error: any) {
+        ElMessage.error(error.message)
+        console.error(error)
+        return
+      }
+    }
+
     router.push({
       name: 'chat-detail',
       params: {
-        id: selectedFriend.value.userId
-      },
-      query: {
-        kind: 'single',
+        id: sessionId
       }
     })
   }
 }
 
-const handleDoubleClick = (friend: Friend) => {
+const handleDoubleClick = async (friend: Friend) => {
+  let sessionId = chatStore.userSessionMap.get(friend.userId)
+
+  if(!sessionId) {
+    try {
+      const response = await createSession({
+        friend_id: friend.userId,
+      })
+      sessionId = response.session_id
+      let s = {
+        sessionId: sessionId,
+        kind: 'single',
+        groupId: 0,
+        groupName: '',
+        groupAvatar: '',
+        friendId: friend.userId,
+        friendName: friend.username,
+        friendAvatar: friend.avatar,
+        seq: 0,
+        messages: [],
+        lastMessage: '',
+        offset: 1,
+      }
+      chatStore.sessions.push(s)
+      chatStore.sessionMap.set(s.sessionId, s);
+      chatStore.userSessionMap.set(friend.userId, s.sessionId);
+    } catch(error: any) {
+      ElMessage.error(error.message)
+      console.error(error)
+      return
+    }
+  }
+
   router.push({
     name: 'chat-detail',
     params: {
-      id: friend.userId
-    },
-    query: {
-      kind: 'single',
+      id: sessionId
     }
   })
 }
@@ -320,7 +382,6 @@ onMounted(() => {
   background: var(--color-white);
   border-left: 1px solid var(--color-border);
   min-height: 100%;
-  width: 500px;
 }
 
 .friend-detail.empty {

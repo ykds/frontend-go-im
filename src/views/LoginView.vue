@@ -45,6 +45,7 @@ import { useAuthStore } from '@/stores/auth'
 import { useRouter } from 'vue-router'
 import { useChatStore } from '@/stores/chat'
 import { useFriendStore } from '@/stores/friend'
+import { useUserStore } from '@/stores/user'
 import { useGroupStore } from '@/stores/group'
 import { listMessage, sendMessage, ackMessage } from '@/api/chat'
 import wsClient from '@/utils/websocket'
@@ -57,6 +58,7 @@ const chatStore = useChatStore()
 const friendStore = useFriendStore()
 const groupStore = useGroupStore()
 const authStore = useAuthStore()
+const userStore = useUserStore()
 const username = ref('')
 const password = ref('')
 const loading = ref(false)
@@ -135,6 +137,8 @@ const initData = async () => {
     // 获取会话列表
     await chatStore.fetchSessions()
 
+    await userStore.fetchUserInfo()
+
     // 获取消息
     chatStore.sessions.forEach(async session => {
         let maxSeq = 0;
@@ -207,7 +211,6 @@ const initData = async () => {
 
     // 监听消息通知
     wsClient.addGlobalCallback(6, (content: string) => {
-        console.log(content)
         const msgs: newMessage[] = JSON.parse(content)
         let maxSeq = 0
         let sessionId = 0
