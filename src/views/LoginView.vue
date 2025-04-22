@@ -182,6 +182,9 @@ const initData = async () => {
         const notify: newMessageNotify = JSON.parse(content)
         let session
         if(notify.kind === 'group') {
+          if (!(chatStore.gsMap instanceof Map)) {
+            chatStore.gsMap = new Map()
+          }
           let sessionId = chatStore.gsMap.get(notify.toId)
           session = chatStore.sessionMap.get(sessionId as number)
         } else if (notify.kind === 'single') {
@@ -204,6 +207,7 @@ const initData = async () => {
 
     // 监听消息通知
     wsClient.addGlobalCallback(6, (content: string) => {
+        console.log(content)
         const msgs: newMessage[] = JSON.parse(content)
         let maxSeq = 0
         let sessionId = 0
@@ -217,6 +221,9 @@ const initData = async () => {
           let sender = ""
           let avatar = ""
           if(kind === 'group') {
+            if (!(chatStore.gsMap instanceof Map)) {
+              chatStore.gsMap = new Map()
+            }
             sessionId = chatStore.gsMap.get(body.toId) as number
             session = chatStore.sessionMap.get(sessionId)
             sender = groupStore.memberMap[body.toId][body.fromId]?.name || '未知'

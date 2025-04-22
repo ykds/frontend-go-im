@@ -5,7 +5,7 @@
     width="500px"
     :close-on-click-modal="false"
   >
-    <div v-if="groupStore.applies.length === 0" class="empty-text">
+    <div v-if="!groupStore.applies || groupStore.applies.length === 0" class="empty-text">
       暂无申请
     </div>
     <div v-else class="apply-list">
@@ -59,9 +59,7 @@ const handleApprove = async (applyId: number) => {
   try {
     await approveGroupApply(applyId)
     ElMessage.success('已同意申请')
-    groupStore.applies.forEach(apply => {
-      apply.apply = apply.apply.filter(user => user.apply_id !== applyId)
-    })
+    await groupStore.fetchapply()
     await groupStore.fetchGroups()
   } catch (error: any) {
     ElMessage.error('操作失败' + error.message)
@@ -75,9 +73,7 @@ const handleReject = async (applyId: number) => {
   try {
     await rejectGroupApply(applyId)
     ElMessage.success('已拒绝申请')
-    groupStore.applies.forEach(apply => {
-      apply.apply = apply.apply.filter(user => user.apply_id !== applyId)
-    })
+    await groupStore.fetchapply()
   } catch (error: any) {
     ElMessage.error('操作失败' + error.message)
   } finally {

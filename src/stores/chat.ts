@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { getSessions } from '@/api/chat'
+import { persistConfig } from './persist'
 
 interface Session {
   sessionId: number
@@ -35,11 +36,31 @@ export const useChatStore = defineStore('chat', () => {
   const loading = ref(false)
   const error = ref<string | null>(null)
 
+  // Initialize maps
+  const initializeMaps = () => {
+    if (!(gsMap.value instanceof Map)) {
+      gsMap.value = new Map()
+    }
+    if (!(sessionMap.value instanceof Map)) {
+      sessionMap.value = new Map()
+    }
+    if (!(userSessionMap.value instanceof Map)) {
+      userSessionMap.value = new Map()
+    }
+  }
+
+  // Call initialization
+  initializeMaps()
+
   const fetchSessions = async () => {
     error.value = null
     try {
       const response = await getSessions()
       const newSessions = response.list.filter(item => !sessions.value.some(session => session.sessionId === item.sessionId))
+
+      // Reinitialize maps before processing new sessions
+      initializeMaps()
+
       if(sessions.value.length > 0) {
         newSessions.forEach(item => {
           sessions.value.push({
@@ -60,31 +81,30 @@ export const useChatStore = defineStore('chat', () => {
           if (item.kind === 'single') {
             userSessionMap.value.set(item.friendId, item.sessionId)
           } else if (item.kind === 'group') {
-            gsMap.value.set(item.friendId, item.sessionId)
+            gsMap.value.set(item.groupId, item.sessionId)
           }
         })
-
       } else {
         sessions.value = response.list.map((item: any) => ({
           sessionId: item.sessionId,
-            kind: item.kind,
-            groupId: item.groupId,
-            groupName: item.groupName,
-            groupAvatar: item.groupAvatar,
-            friendId: item.friendId,
-            friendName: item.friendName,
-            friendAvatar: item.friendAvatar,
-            seq: item.seq,
-            messages: [],
-            lastMessage: '',
-            offset: item.seq+1,
+          kind: item.kind,
+          groupId: item.groupId,
+          groupName: item.groupName,
+          groupAvatar: item.groupAvatar,
+          friendId: item.friendId,
+          friendName: item.friendName,
+          friendAvatar: item.friendAvatar,
+          seq: item.seq,
+          messages: [],
+          lastMessage: '',
+          offset: item.seq+1,
         }))
         sessionMap.value = new Map(sessions.value.map(session => [session.sessionId, session]))
         sessions.value.forEach(session => {
           if (session.kind === 'single') {
             userSessionMap.value.set(session.friendId, session.sessionId)
           } else if (session.kind === 'group') {
-            gsMap.value.set(session.friendId, session.sessionId)
+            gsMap.value.set(session.groupId, session.sessionId)
           }
         })
       }
@@ -99,7 +119,6 @@ export const useChatStore = defineStore('chat', () => {
     currentSessionId.value = sessionId
   }
 
-
   return {
     sessions,
     sessionMap,
@@ -109,6 +128,7 @@ export const useChatStore = defineStore('chat', () => {
     fetchSessions,
     setCurrentSession,
     gsMap,
+    userSessionMap,
   }
 }, {
   persist: true

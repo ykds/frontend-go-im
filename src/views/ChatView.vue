@@ -40,8 +40,8 @@
              class="chat-item"
              :class="{ active: selectedSession?.sessionId === session.sessionId }"
              @click="selectSession(session)">
-          <img v-if="session.kind === 'single'" :src="session.friendAvatar || defaultAvatar" class="chat-avatar" />
-          <img v-if="session.kind === 'group'" :src="session.groupAvatar || defaultAvatar" class="chat-avatar" />
+          <img v-if="session.kind === 'single'" :src="session.friendAvatar?'http://localhost:8080' + session.friendAvatar : defaultAvatar" class="chat-avatar" />
+          <img v-if="session.kind === 'group'" :src="session.groupAvatar?'http://localhost:8080' + session.groupAvatar :  defaultAvatar" class="chat-avatar" />
           <div class="chat-info">
             <span v-if="session.kind === 'single'" class="chat-name">{{ session.friendName }}</span>
             <span v-if="session.kind === 'group'" class="chat-name">{{ session.groupName }}</span>
@@ -408,12 +408,11 @@ watch(() => route.params.id, async (newId) => {
 
 .chat-box {
   flex: 1;
-  padding: 24px;
   display: flex;
   background: var(--color-white);
   border-left: 1px solid var(--color-border);
   min-height: 100%;
-  width: 500px;
+  width: 100%;
 }
 
 .chat-box.empty {
@@ -425,11 +424,13 @@ watch(() => route.params.id, async (newId) => {
   display: flex;
   flex-direction: column;
   height: 100%;
+  width: 100%;
 }
 
 .chat-header {
   padding: 16px;
   border-bottom: 1px solid var(--color-border);
+  background: var(--color-white);
 }
 
 .chat-title {
@@ -442,6 +443,7 @@ watch(() => route.params.id, async (newId) => {
   flex: 1;
   overflow-y: auto;
   padding: 16px;
+  background: var(--color-background);
 }
 
 .message-item {
@@ -489,6 +491,7 @@ watch(() => route.params.id, async (newId) => {
   border-top: 1px solid var(--color-border);
   display: flex;
   gap: 8px;
+  background: var(--color-white);
 }
 
 .message-input input {
