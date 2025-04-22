@@ -39,39 +39,49 @@
         <div class="profile-body">
           <div class="avatar-section">
             <div class="avatar-wrapper">
-              <img :src="userInfo.avatar?'http://localhost:8080'+userInfo.avatar : defaultAvatar" class="profile-avatar" />
+              <el-upload
+                v-if="isEditing"
+                class="avatar-uploader"
+                action="#"
+                :show-file-list="false"
+                :before-upload="beforeAvatarUpload"
+              >
+                <img :src="userInfo.avatar ? 'http://localhost:8080' + userInfo.avatar : defaultAvatar" class="profile-avatar" />
+                <div class="upload-overlay">
+                  <el-icon class="upload-icon"><Plus /></el-icon>
+                </div>
+              </el-upload>
+              <img
+                v-else
+                :src="userInfo.avatar ? 'http://localhost:8080' + userInfo.avatar : defaultAvatar"
+                class="profile-avatar"
+              />
             </div>
-            <div class="username-section">
-              <template v-if="isEditing">
-                <div class="edit-fields">
-                  <el-input
-                    v-model="editForm.username"
-                    placeholder="请输入用户名"
-                    size="large"
-                  />
-                  <el-select
-                    v-model="editForm.gender"
-                    placeholder="请选择性别"
-                    size="large"
-                  >
-                    <el-option label="男" value="male" />
-                    <el-option label="女" value="female" />
-                  </el-select>
-                </div>
-              </template>
-              <template v-else>
-                <div class="user-info">
-                  <span class="username">{{ userInfo.username }}</span>
-                  <div class="gender-badge" :class="userInfo.gender">
-                    <svg v-if="userInfo.gender === 'male'" class="gender-icon" viewBox="0 0 24 24">
-                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
-                    </svg>
-                    <svg v-else-if="userInfo.gender === 'female'" class="gender-icon" viewBox="0 0 24 24">
-                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
-                    </svg>
-                  </div>
-                </div>
-              </template>
+          </div>
+          <div class="username-section">
+            <div class="edit-fields" v-if="isEditing">
+              <el-input
+                v-model="editForm.username"
+                placeholder="请输入用户名"
+                size="large"
+              />
+              <el-select v-model="editForm.gender" placeholder="请选择性别" size="large">
+                <el-option label="男" value="male" />
+                <el-option label="女" value="female" />
+              </el-select>
+            </div>
+            <div v-else class="user-info">
+              <span class="username">{{ userInfo.username }}</span>
+              <div class="gender-badge" :class="userInfo.gender">
+                <el-icon>
+                  <svg v-if="userInfo.gender === 'male'" viewBox="0 0 24 24">
+                    <path d="M9,9C10.29,9 11.5,9.41 12.47,10.11L17.58,5H13V3H21V11H19V6.41L13.89,11.5C14.59,12.5 15,13.7 15,15A6,6 0 0,1 9,21A6,6 0 0,1 3,15A6,6 0 0,1 9,9M9,11A4,4 0 0,0 5,15A4,4 0 0,0 9,19A4,4 0 0,0 13,15A4,4 0 0,0 9,11Z" />
+                  </svg>
+                  <svg v-else viewBox="0 0 24 24">
+                    <path d="M12,4A6,6 0 0,1 18,10C18,12.97 15.84,15.44 13,15.92V18H15V20H13V22H11V20H9V18H11V15.92C8.16,15.44 6,12.97 6,10A6,6 0 0,1 12,4M12,6A4,4 0 0,0 8,10A4,4 0 0,0 12,14A4,4 0 0,0 16,10A4,4 0 0,0 12,6Z" />
+                  </svg>
+                </el-icon>
+              </div>
             </div>
           </div>
           <div class="info-section">
@@ -81,13 +91,7 @@
                   <path d="M6.62 10.79c1.44 2.83 3.76 5.15 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>
                 </svg>
               </div>
-              <el-input
-                v-if="isEditing"
-                v-model="editForm.phone"
-                placeholder="请输入手机号"
-                size="large"
-              />
-              <span v-else class="info-value">{{ userInfo.phone }}</span>
+              <span class="info-value">{{ userInfo.phone }}</span>
             </div>
           </div>
           <div class="action-section" v-if="isEditing">
@@ -114,6 +118,11 @@ import wsClient from '@/utils/websocket'
 import defaultAvatar from '@/assets/default-avatar.svg'
 import { getUserInfo } from '@/api/user'
 import { useUserStore } from '@/stores/user'
+import { Plus } from '@element-plus/icons-vue'
+import { uploadFile } from '@/api/upload'
+import { updateUserInfo } from '@/api/user'
+import { ElMessage } from 'element-plus'
+import type { UploadProps } from 'element-plus'
 
 interface UserInfo {
   username: string
@@ -144,14 +153,39 @@ const editForm = ref<UserInfo>({
   avatar: ''
 })
 
+
+const beforeAvatarUpload: UploadProps['beforeUpload'] = async (file) => {
+  const isLt2M = file.size / 1024 / 1024 < 2
+  if (!isLt2M) {
+    ElMessage.error('Avatar size cannot exceed 2MB!')
+    return false
+  }
+
+  try {
+    const response = await uploadFile(file)
+    if (response.url) {
+      editForm.value.avatar = response.url
+      ElMessage.success('头像上传成功')
+    } else {
+      ElMessage.error('头像上传失败')
+    }
+  } catch (error: any) {
+    ElMessage.error(error.message)
+    console.error(error)
+  }
+  return true
+}
+
 const handleSave = async () => {
   try {
-    // TODO: 调用更新用户信息接口
-    // await updateUserInfo(editForm.value)
+    await updateUserInfo(editForm.value)
     Object.assign(userInfo.value, editForm.value)
     isEditing.value = false
-  } catch (error) {
-    console.error('更新用户信息失败:', error)
+    ElMessage.success('保存成功')
+    await userStore.fetchUserInfo()
+  } catch (error: any) {
+    ElMessage.error(error.message)
+    console.error(error)
   }
 }
 
@@ -303,13 +337,15 @@ onMounted(async ()  => {
 .avatar-wrapper {
   position: relative;
   margin-bottom: 24px;
-}
-
-.profile-avatar {
   width: 120px;
   height: 120px;
   border-radius: 50%;
-  border: 4px solid var(--color-border);
+  overflow: hidden;
+}
+
+.profile-avatar {
+  width: 100%;
+  height: 100%;
   object-fit: cover;
 }
 
@@ -360,24 +396,19 @@ onMounted(async ()  => {
 }
 
 .gender-badge.male {
-  background: rgba(59, 130, 246, 0.1);
+  background-color: #409EFF;
+  color: #fff;
 }
 
 .gender-badge.female {
-  background: rgba(236, 72, 153, 0.1);
+  background-color: #FF69B4;
+  color: #fff;
 }
 
-.gender-icon {
+.gender-badge svg {
   width: 20px;
   height: 20px;
-}
-
-.gender-badge.male .gender-icon {
-  fill: #3b82f6;
-}
-
-.gender-badge.female .gender-icon {
-  fill: #ec4899;
+  fill: currentColor;
 }
 
 .info-section {
@@ -390,13 +421,8 @@ onMounted(async ()  => {
 .info-item {
   display: flex;
   align-items: center;
-  justify-content: center;
-  padding: 12px 16px;
-  background: var(--color-input-bg);
-  border-radius: 8px;
   gap: 12px;
-  width: fit-content;
-  min-width: 240px;
+  margin-bottom: 16px;
 }
 
 .phone-icon {
@@ -420,13 +446,13 @@ onMounted(async ()  => {
 .info-value {
   font-size: 16px;
   color: var(--color-text);
-  text-align: center;
 }
 
 .action-section {
   display: flex;
-  gap: 16px;
-  margin-bottom: 40px;
+  gap: 12px;
+  margin-top: 24px;
+  margin-bottom: 24px;
 }
 
 .logout-section {
@@ -436,5 +462,34 @@ onMounted(async ()  => {
   padding: 12px 16px;
   border-top: 1px solid var(--color-border);
   text-align: center;
+}
+
+.avatar-uploader {
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+}
+
+.upload-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.avatar-uploader:hover .upload-overlay {
+  opacity: 1;
+}
+
+.upload-icon {
+  font-size: 24px;
+  color: #fff;
 }
 </style>
