@@ -12,7 +12,7 @@
             :show-file-list="false"
             :before-upload="beforeAvatarUpload"
           >
-            <img v-if="avatarUrl" :src="'http://localhost:8080'+avatarUrl" class="avatar" />
+            <img v-if="avatarUrl" :src="API_BASE_URL+avatarUrl" class="avatar" />
             <el-icon v-else class="avatar-uploader-icon"><Plus /></el-icon>
           </el-upload>
           <div class="upload-tip">点击上传头像</div>
@@ -95,7 +95,7 @@ import { register } from '@/api/auth'
 import type { UploadProps } from 'element-plus'
 import { ElMessage } from 'element-plus'
 import { uploadFile } from '@/api/upload'
-
+import { API_BASE_URL } from '@/config'
 const router = useRouter()
 const loading = ref(false)
 const error = ref<string | null>(null)

@@ -7,7 +7,7 @@
   >
     <div v-if="friendStore.applyList.length > 0" class="apply-list">
       <div v-for="apply in friendStore.applyList" :key="apply.applyId" class="apply-item">
-        <img :src="apply.avatar ? 'http://localhost:8080'+apply.avatar : defaultAvatar" class="user-avatar" />
+        <img :src="apply.avatar ? API_BASE_URL+apply.avatar : defaultAvatar" class="user-avatar" />
         <span class="user-name">{{ apply.username }}</span>
         <div class="action-buttons">
           <el-button
@@ -41,6 +41,7 @@ import defaultAvatar from '@/assets/default-avatar.svg'
 import { ElMessage } from 'element-plus'
 import { approveFriendApply, rejectFriendApply } from '@/api/user'
 import { useFriendStore } from '@/stores/friend'
+import { API_BASE_URL } from '@/config'
 export interface ApplyInfo {
   applyId: number
   userId: number

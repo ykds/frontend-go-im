@@ -60,7 +60,7 @@
              class="friend-item"
              @click="selectFriend(friend)"
              @dblclick="handleDoubleClick(friend)">
-          <img :src="friend.avatar ? 'http://localhost:8080' + friend.avatar : defaultAvatar" :alt="friend.username" class="friend-avatar" />
+          <img :src="friend.avatar ? API_BASE_URL + friend.avatar : defaultAvatar" :alt="friend.username" class="friend-avatar" />
           <span class="friend-name">{{ friend.username }}</span>
         </div>
       </div>
@@ -85,7 +85,7 @@ import FriendApplyDialog from '@/components/friend/FriendApplyDialog.vue'
 import { useChatStore } from '@/stores/chat'
 import { createSession, type CreateSessionReq, type CreateSessionResp } from '@/api/chat'
 import { ElMessage } from 'element-plus'
-
+import { API_BASE_URL } from '@/config'
 interface Friend {
   userId: number
   username: string

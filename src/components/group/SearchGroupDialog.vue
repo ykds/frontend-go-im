@@ -26,7 +26,7 @@
       <!-- 搜索结果 -->
       <div v-if="searchResult" class="search-result">
         <div class="group-item" v-for="group in searchResult" :key="group.id">
-          <img :src="group.avatar?'http://localhost:8080'+group.avatar : defaultAvatar" alt="群头像" class="group-avatar" />
+          <img :src="group.avatar?API_BASE_URL+group.avatar : defaultAvatar" alt="群头像" class="group-avatar" />
           <div class="group-info">
             <div class="group-name">{{ group.name }}</div>
             <div class="group-details">
@@ -53,7 +53,7 @@ import { ref, defineProps, defineEmits, watch, onMounted } from 'vue'
 import { ElMessage, ElDialog, ElInput, ElButton } from 'element-plus'
 import defaultAvatar from '@/assets/default-avatar.svg'
 import { searchGroup, applyJoinGroup } from '@/api/group'
-
+import { API_BASE_URL } from '@/config'
 interface GroupInfo {
   id: number
   name: string

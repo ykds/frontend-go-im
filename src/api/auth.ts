@@ -5,14 +5,18 @@ export interface LoginRequest {
   password: string
 }
 
+export interface LoginResponse {
+ token: string
+}
+
 export interface UserInfo {
   id: string
   username: string
   nickname: string
 }
 
-export const login = async (data: LoginRequest): Promise<string> => {
-  return request.post<string>('/api/user/login', data)
+export const login = async (data: LoginRequest): Promise<LoginResponse> => {
+  return request.post<LoginResponse>('/api/user/login', data)
 }
 
 export const register = async (data: RegisterData): Promise<void> => {

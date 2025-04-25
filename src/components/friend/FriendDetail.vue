@@ -1,6 +1,6 @@
 <template>
   <div class="friend-detail">
-    <img :src="friend.avatar?'http://localhost:8080'+friend.avatar : defaultAvatar" :alt="friend.username" class="avatar" />
+    <img :src="friend.avatar?API_BASE_URL+friend.avatar : defaultAvatar" :alt="friend.username" class="avatar" />
     <h2>{{ friend.username }}</h2>
     <!-- <p v-if="friend.remark">备注: {{ friend.remark }}</p> -->
     <!-- <p>性别: {{ friend.gender === 1 ? '男' : '女' }}</p> -->
@@ -11,7 +11,7 @@
 <script setup lang="ts">
 import { defineProps, defineEmits } from 'vue'
 import defaultAvatar from '@/assets/default-avatar.svg'
-
+import { API_BASE_URL } from '@/config'
 interface Friend {
   userId: number
   username: string

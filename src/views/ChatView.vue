@@ -40,8 +40,8 @@
              class="chat-item"
              :class="{ active: selectedSession?.sessionId === session.sessionId }"
              @click="selectSession(session)">
-          <img v-if="session.kind === 'single'" :src="session.friendAvatar?'http://localhost:8080' + session.friendAvatar : defaultAvatar" class="chat-avatar" />
-          <img v-if="session.kind === 'group'" :src="session.groupAvatar?'http://localhost:8080' + session.groupAvatar :  defaultAvatar" class="chat-avatar" />
+          <img v-if="session.kind === 'single'" :src="session.friendAvatar?API_BASE_URL + session.friendAvatar : defaultAvatar" class="chat-avatar" />
+          <img v-if="session.kind === 'group'" :src="session.groupAvatar?API_BASE_URL + session.groupAvatar :  defaultAvatar" class="chat-avatar" />
           <div class="chat-info">
             <span v-if="session.kind === 'single'" class="chat-name">{{ session.friendName }}</span>
             <span v-if="session.kind === 'group'" class="chat-name">{{ session.groupName }}</span>
@@ -59,7 +59,7 @@
             <div v-for="message in selectedSession.messages" :key="message.id"
                  class="message-item"
                  :class="{ 'message-self': message.isSelf }">
-              <img :src="message.avatar?'http://localhost:8080'+message.avatar : defaultAvatar" :alt="message.sender" class="message-avatar" />
+              <img :src="message.avatar?API_BASE_URL+message.avatar : defaultAvatar" :alt="message.sender" class="message-avatar" />
               <div class="message-content">
                 <span class="message-sender">{{ message.sender }}</span>
                 <div class="message-bubble">{{ message.content }}</div>
@@ -83,7 +83,7 @@ import { useChatStore } from '@/stores/chat'
 import { useUserStore } from '@/stores/user'
 import { sendMessage, getSeq } from '@/api/chat'
 import wsClient from '@/utils/websocket'
-
+import { API_BASE_URL } from '@/config'
 import defaultAvatar from '@/assets/default-avatar.svg'
 
 interface Session {

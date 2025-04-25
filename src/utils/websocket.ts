@@ -1,4 +1,6 @@
 import { ref } from 'vue'
+import { WS_URL } from '@/config'
+
 
 interface Message {
   type: number
@@ -18,7 +20,7 @@ type Callback = (data: any) => void
 class WebSocketClient {
   private ws: WebSocket | null = null
   private options = {
-    url: 'ws://localhost:8081/ws',
+    url: WS_URL + '/ws',
     reconnectInterval: 1000,
     maxReconnectAttempts: 5,
     heartbeatInterval: 50000

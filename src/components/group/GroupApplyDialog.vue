@@ -11,12 +11,12 @@
     <div v-else class="apply-list">
       <div v-for="group in groupStore.applies" class="group-apply">
         <div class="group-header">
-          <img :src="group.avatar? 'http://localhost:8080' + group.avatar : defaultAvatar" :alt="group.name" class="group-avatar" />
+          <img :src="group.avatar? API_BASE_URL + group.avatar : defaultAvatar" :alt="group.name" class="group-avatar" />
           <span class="group-name">{{ group.name }}</span>
         </div>
         <div class="user-list">
           <div v-for="user in group.apply" class="user-item">
-            <img :src="user.avatar? 'http://localhost:8080' + user.avatar : defaultAvatar" :alt="user.name" class="group-avatar" />
+            <img :src="user.avatar? API_BASE_URL + user.avatar : defaultAvatar" :alt="user.name" class="group-avatar" />
             <span class="user-name">{{ user.name }}</span>
             <div class="action-buttons">
               <el-button
@@ -49,7 +49,7 @@ import { ElMessage } from 'element-plus'
 import { approveGroupApply, rejectGroupApply } from '@/api/group'
 import { useGroupStore } from '@/stores/group'
 import defaultAvatar from '@/assets/default-avatar.svg'
-
+import { API_BASE_URL } from '@/config'
 const visible = ref(false)
 const loading = ref<Record<string, boolean>>({})
 const groupStore = useGroupStore()

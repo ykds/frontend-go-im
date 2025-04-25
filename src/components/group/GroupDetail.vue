@@ -1,6 +1,6 @@
 <template>
   <div class="group-detail">
-    <img :src="group.avatar ? 'http://localhost:8080' + group.avatar : defaultAvatar" :alt="group.name" class="avatar" />
+    <img :src="group.avatar ? API_BASE_URL + group.avatar : defaultAvatar" :alt="group.name" class="avatar" />
     <h2>{{ group.name }}</h2>
     <p>群号: {{ group.groupNo }}</p>
     <!-- <p>群成员: {{ group.memberCount }}人</p> -->
@@ -11,7 +11,7 @@
 <script setup lang="ts">
 import { defineProps, defineEmits } from 'vue'
 import defaultAvatar from '@/assets/default-avatar.svg'
-
+import { API_BASE_URL } from '@/config'
 interface Group {
   id: number
   groupNo: number

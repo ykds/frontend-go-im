@@ -1,9 +1,10 @@
 import axios from 'axios'
 import type { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios'
 import type { ApiResponse, ApiError } from '@/types/api'
+import { API_BASE_URL, SEQ_URL } from '@/config'
 
 const api: AxiosInstance = axios.create({
-  baseURL: 'http://localhost:8080',
+  baseURL: API_BASE_URL,
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json'
@@ -67,9 +68,8 @@ export const request = {
   }
 }
 
-
-const wsapi: AxiosInstance = axios.create({
-  baseURL: 'http://localhost:8081',
+const seqapi: AxiosInstance = axios.create({
+  baseURL: SEQ_URL,
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json'
@@ -77,7 +77,7 @@ const wsapi: AxiosInstance = axios.create({
 })
 
 // 请求拦截器
-wsapi.interceptors.request.use(
+seqapi.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token')
     if (!token) {
@@ -93,7 +93,7 @@ wsapi.interceptors.request.use(
 )
 
 // 响应拦截器
-wsapi.interceptors.response.use(
+seqapi.interceptors.response.use(
   (response) => {
     return response
   },
@@ -106,9 +106,9 @@ wsapi.interceptors.response.use(
   }
 )
 
-export const wsrequest = {
+export const seqrequest = {
   get: <T = any>(url: string, config?: AxiosRequestConfig): Promise<T> => {
-    return wsapi.get<ApiResponse<T>>(url, config).then(res => res.data.data)
+    return seqapi.get<ApiResponse<T>>(url, config).then(res => res.data.data)
   },
 }
 

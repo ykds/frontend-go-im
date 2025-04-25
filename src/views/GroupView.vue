@@ -66,7 +66,7 @@
              :class="{ active: selectedGroup?.id === group.id }"
              @click="toggleGroup(group)"
              @dblclick="handleDoubleClick(group)">
-          <img :src="group.avatar? 'http://localhost:8080' + group.avatar : defaultAvatar" :alt="group.name" class="group-avatar" />
+          <img :src="group.avatar? API_BASE_URL + group.avatar : defaultAvatar" :alt="group.name" class="group-avatar" />
           <span class="group-name">{{ group.name }}</span>
         </div>
       </div>
@@ -103,7 +103,7 @@ import defaultAvatar from '@/assets/default-avatar.svg'
 import { useGroupStore } from '@/stores/group'
 import { Search, Plus, Bell } from '@element-plus/icons-vue'
 import { useChatStore } from '@/stores/chat'
-
+import { API_BASE_URL } from '@/config'
 interface Group {
   id: number
   groupNo: number

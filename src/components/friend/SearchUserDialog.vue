@@ -19,7 +19,7 @@
 
     <div v-if="searchResults.length > 0" class="results-container">
       <div v-for="user in searchResults" :key="user.id" class="result-item">
-        <img :src="user.avatar ? 'http://localhost:8080' + user.avatar : defaultAvatar" class="user-avatar" />
+        <img :src="user.avatar ? API_BASE_URL + user.avatar : defaultAvatar" class="user-avatar" />
         <span class="user-name">{{ user.username }}</span>
         <el-button
           type="primary"
@@ -42,7 +42,7 @@ import { ref, computed } from 'vue'
 import defaultAvatar from '@/assets/default-avatar.svg'
 import { ElMessage } from 'element-plus'
 import { searchUser, applyFriend } from '@/api/user'
-
+import { API_BASE_URL } from '@/config'
 interface UserInfo {
   id: number
   username: string

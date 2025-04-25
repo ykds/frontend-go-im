@@ -20,8 +20,8 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       loading.value = true
       error.value = null
-      const token = await loginApi(credentials)
-      return token
+      const resp = await loginApi(credentials)
+      return resp.token
     } catch (err) {
       const apiError = err as ApiError
       error.value = apiError.message || '登录失败，请重试'

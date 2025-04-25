@@ -14,7 +14,7 @@
           :show-file-list="false"
           :before-upload="beforeAvatarUpload"
         >
-          <img v-if="avatarUrl" :src="'http://localhost:8080'+avatarUrl" class="avatar" />
+          <img v-if="avatarUrl" :src="API_BASE_URL+avatarUrl" class="avatar" />
           <el-icon v-else class="avatar-uploader-icon"><Plus /></el-icon>
         </el-upload>
         <div class="upload-tip">点击上传群头像</div>
@@ -48,7 +48,7 @@ import { createGroup } from '@/api/group'
 import { uploadFile } from '@/api/upload'
 import { useGroupStore } from '@/stores/group'
 import { useChatStore } from '@/stores/chat'
-
+import { API_BASE_URL } from '@/config'
 const props = defineProps({
   modelValue: {
     type: Boolean,

@@ -1,4 +1,4 @@
-import { request, wsrequest } from '@/utils/request'
+import { request, seqrequest } from '@/utils/request'
 
 // 获取会话列表
 export function getSessions() {
@@ -14,7 +14,7 @@ export function ackMessage(data: AckMessageReq) {
 }
 
 export function getSeq(data: GetSeqReq) {
-  return wsrequest.get<number>('/seq', {params: data})
+  return seqrequest.get<number>('/api/seq', {params: data})
 }
 
 // 发送消息

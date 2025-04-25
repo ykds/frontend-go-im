@@ -46,14 +46,14 @@
                 :show-file-list="false"
                 :before-upload="beforeAvatarUpload"
               >
-                <img :src="userInfo.avatar ? 'http://localhost:8080' + userInfo.avatar : defaultAvatar" class="profile-avatar" />
+                <img :src="userInfo.avatar ? API_BASE_URL + userInfo.avatar : defaultAvatar" class="profile-avatar" />
                 <div class="upload-overlay">
                   <el-icon class="upload-icon"><Plus /></el-icon>
                 </div>
               </el-upload>
               <img
                 v-else
-                :src="userInfo.avatar ? 'http://localhost:8080' + userInfo.avatar : defaultAvatar"
+                :src="userInfo.avatar ? API_BASE_URL + userInfo.avatar : defaultAvatar"
                 class="profile-avatar"
               />
             </div>
@@ -123,6 +123,7 @@ import { uploadFile } from '@/api/upload'
 import { updateUserInfo } from '@/api/user'
 import { ElMessage } from 'element-plus'
 import type { UploadProps } from 'element-plus'
+import { API_BASE_URL } from '@/config'
 
 interface UserInfo {
   username: string
