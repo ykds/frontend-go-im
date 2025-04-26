@@ -4,6 +4,7 @@ import { ref } from 'vue'
 
 
 interface UserInfo {
+  id: number
   username: string
   phone: string
   gender: string

@@ -15,7 +15,7 @@ interface GroupInfo {
   avatar: string
   memberCount: number
   groupNo: number
-  owner_id: number
+  ownerId: number
 }
 
 export interface ApplyUserInfo {
@@ -32,6 +32,12 @@ export interface GroupApplyInfo {
 
 interface GetAppliesResponse {
   list: GroupApplyInfo[]
+}
+
+interface GroupMember {
+  id: number
+  name: string
+  avatar: string
 }
 
 export const createGroup = (data: CreateGroupParams) => {
@@ -56,5 +62,25 @@ export const approveGroupApply = (applyId: number) => {
 
 export const rejectGroupApply = (applyId: number) => {
   return request.put(`/api/group/handle/apply`, {apply_id: applyId, status: "rejected" })
+}
+
+export const getGroupMembers = (params: { group_id: number }) => {
+  return request.get<{ members: GroupMember[] }>(`/api/group/members`,{params} )
+}
+
+export const kickGroupMember = (params: { group_id: number; user_id: number }) => {
+  return request.put(`/api/group/member/move-out`, params)
+}
+
+export const leaveGroup = (params: { group_id: number }) => {
+  return request.post('/api/group/exit', params)
+}
+
+export const dismissGroup = (params: { group_id: number }) => {
+  return request.post('/api/group/dismiss', params)
+}
+
+export const inviteGroupMembers = (params: { group_id: number; member_ids: number[] }) => {
+  return request.post('/api/group/invite', params)
 }
 

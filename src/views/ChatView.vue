@@ -40,11 +40,15 @@
              class="chat-item"
              :class="{ active: selectedSession?.sessionId === session.sessionId }"
              @click="selectSession(session)">
+          <div class="chat-type-indicator" :class="session.kind">
+            <span v-if="session.kind === 'single'">私</span>
+            <span v-if="session.kind === 'group'">群</span>
+          </div>
           <img v-if="session.kind === 'single'" :src="session.friendAvatar?API_BASE_URL + session.friendAvatar : defaultAvatar" class="chat-avatar" />
           <img v-if="session.kind === 'group'" :src="session.groupAvatar?API_BASE_URL + session.groupAvatar :  defaultAvatar" class="chat-avatar" />
           <div class="chat-info">
             <span v-if="session.kind === 'single'" class="chat-name">{{ session.friendName }}</span>
-            <span v-if="session.kind === 'group'" class="chat-name">{{ session.groupName }}</span>
+            <span v-if="session.kind === 'group'" class="chat-name">{{ session.groupName }}({{ session.memberCount }})</span>
             <span class="chat-preview">{{ session.lastMessage }}</span>
           </div>
         </div>
@@ -53,7 +57,7 @@
         <div v-if="selectedSession" class="chat-box-content">
           <div class="chat-header">
             <span v-if="selectedSession.kind === 'single'" class="chat-title">{{ selectedSession.friendName }}</span>
-            <span v-if="selectedSession.kind === 'group'" class="chat-title">{{ selectedSession.groupName }}</span>
+            <span v-if="selectedSession.kind === 'group'" class="chat-title">{{ selectedSession.groupName }}({{ selectedSession.memberCount }})</span>
           </div>
           <div class="message-list" ref="messageListRef">
             <div v-for="message in selectedSession.messages" :key="message.id"
@@ -92,6 +96,7 @@ interface Session {
 	groupId:      number
 	groupName:    string
 	groupAvatar:    string
+  memberCount: number
 	friendId:    number
 	friendName:    string
 	friendAvatar: string
@@ -371,6 +376,7 @@ onMounted(async () => {
   border-radius: 8px;
   transition: all 0.3s ease;
   margin-bottom: 8px;
+  position: relative;
 }
 
 .chat-item:hover {
@@ -381,12 +387,38 @@ onMounted(async () => {
   background: var(--color-primary-light);
 }
 
+.chat-type-indicator {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  color: white;
+  z-index: 1;
+}
+
+.chat-type-indicator.single {
+  background: var(--color-primary);
+}
+
+.chat-type-indicator.group {
+  background: var(--color-secondary);
+}
+
 .chat-avatar {
   width: 40px;
   height: 40px;
   border-radius: 50%;
   margin-right: 12px;
   border: 2px solid var(--color-border);
+  margin-left: 8px;
 }
 
 .chat-info {
@@ -398,7 +430,6 @@ onMounted(async () => {
   font-size: 16px;
   color: var(--color-text);
   display: block;
-  margin-bottom: 4px;
 }
 
 .chat-preview {

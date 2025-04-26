@@ -109,6 +109,7 @@ interface Group {
   groupNo: number
   name: string
   avatar: string
+  ownerId: number
 }
 
 const groupStore = useGroupStore()

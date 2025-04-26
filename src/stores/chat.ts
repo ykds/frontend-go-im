@@ -9,6 +9,7 @@ interface Session {
 	groupId:      number
 	groupName:    string
 	groupAvatar:    string
+  memberCount: number
 	friendId:    number
 	friendName:    string
 	friendAvatar: string
@@ -69,6 +70,7 @@ export const useChatStore = defineStore('chat', () => {
             groupId: item.groupId,
             groupName: item.groupName,
             groupAvatar: item.groupAvatar,
+            memberCount: item.memberCount,
             friendId: item.friendId,
             friendName: item.friendName,
             friendAvatar: item.friendAvatar,
@@ -91,6 +93,7 @@ export const useChatStore = defineStore('chat', () => {
           groupId: item.groupId,
           groupName: item.groupName,
           groupAvatar: item.groupAvatar,
+          memberCount: item.memberCount,
           friendId: item.friendId,
           friendName: item.friendName,
           friendAvatar: item.friendAvatar,

@@ -65,7 +65,7 @@
         </div>
       </div>
       <div class="friend-detail" :class="{ 'empty': !selectedFriend }">
-        <FriendDetail v-if="selectedFriend" :friend="selectedFriend" @send-message="handleSendMessage" />
+        <FriendDetail v-if="selectedFriend" :friend="selectedFriend" @send-message="handleSendMessage" @refresh="loadFriens" />
       </div>
     </div>
     <SearchUserDialog v-model="showSearchDialog" />
@@ -90,6 +90,7 @@ interface Friend {
   userId: number
   username: string
   avatar: string
+  gender: string
 }
 
 const router = useRouter()
@@ -104,6 +105,9 @@ const selectFriend = (friend: Friend) => {
   selectedFriend.value = friend
 }
 
+const loadFriens = async() => {
+  await friendStore.fetchFriends()
+}
 
 const handleApplyClick = async () => {
   showApplyDialog.value = true
@@ -127,6 +131,7 @@ const handleSendMessage = async () => {
           groupId: 0,
           groupName: '',
           groupAvatar: '',
+          memberCount: 0,
           friendId: selectedFriend.value.userId,
           friendName: selectedFriend.value.username,
           friendAvatar: selectedFriend.value.avatar,
@@ -169,6 +174,7 @@ const handleDoubleClick = async (friend: Friend) => {
         groupId: 0,
         groupName: '',
         groupAvatar: '',
+        memberCount: 0,
         friendId: friend.userId,
         friendName: friend.username,
         friendAvatar: friend.avatar,

@@ -22,6 +22,13 @@ export interface SearchUserParams {
   phone: string
 }
 
+export interface DeleteUserReq {
+  friendId: number
+}
+
+export const deleteFriend = (data: DeleteUserReq) => {
+  return request.post('/api/friends', data)
+}
 
 export const applyFriend = (data: ApplyFriendParams) => {
   return request.post('/api/friends/apply', data)

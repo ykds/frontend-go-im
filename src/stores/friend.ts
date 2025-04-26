@@ -6,16 +6,11 @@ interface Friend {
   userId: number
   username: string
   avatar: string
+  gender: string
 }
 
 interface ListFriendResponse {
   list: Friend[]
-}
-
-interface FriendApply {
-  userId: string
-  username: string
-  avatar: string
 }
 
 export interface ListFriendApplyResponse {
@@ -27,6 +22,7 @@ export interface FriendApplyInfo {
   userId: number
   username: string
   avatar: string
+  gender: string
 }
 
 export const useFriendStore = defineStore('friend', () => {
@@ -34,7 +30,6 @@ export const useFriendStore = defineStore('friend', () => {
   const loading = ref(false)
   const error = ref<string | null>(null)
   const friendMap = ref<Record<string, Friend>>({})
-  const friendApplyList = ref<FriendApply[]>([])
   const hasUnreadFriendApply = ref(false)
   const applyList = ref<FriendApplyInfo[]>([])
 
@@ -44,6 +39,7 @@ export const useFriendStore = defineStore('friend', () => {
       error.value = null
       const response = await request.get<ListFriendResponse>('/api/friends')
       friends.value = response.list
+      friendMap.value = {}
       response.list.forEach(friend => {
         friendMap.value[friend.userId] = friend
       })
@@ -73,7 +69,6 @@ export const useFriendStore = defineStore('friend', () => {
     fetchFriends,
     fetchApply,
     friendMap,
-    friendApplyList,
     hasUnreadFriendApply,
   }
 }, {

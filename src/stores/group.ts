@@ -7,6 +7,7 @@ interface Group {
   groupNo: number
   name: string
   avatar: string
+  ownerId: number
   members: MemberInfo[]
 }
 
@@ -31,18 +32,7 @@ export interface ApplyUserInfo {
   apply_id: number
   name: string
   avatar: string
-}
-
-export interface GroupApplyInfo {
-  name: string
-  avatar: string
-  apply: ApplyUserInfo[]
-}
-
-export interface ApplyUserInfo {
-  apply_id: number
-  name: string
-  avatar: string
+  gender: string
 }
 
 export interface GroupApplyInfo {

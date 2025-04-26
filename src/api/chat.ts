@@ -40,6 +40,7 @@ interface SessionInfo {
 	groupId:      number
 	groupName:    string
 	groupAvatar:    string
+  memberCount: number
 	friendId:    number
 	friendName:    string
 	friendAvatar: string
