@@ -102,10 +102,6 @@ interface newMessage {
   content: string
 }
 
-interface notifyMessage {
-  type: number
-}
-
 interface Body {
 	id: number
   sessionId: number
@@ -119,10 +115,10 @@ interface Body {
 
 interface AckMessage {
 	type: number
-  kind: string
-	sessionId: number
-	id: number
-	seq: number
+  kind?: string
+	sessionId?: number
+	id?: number
+	seq?: number
 }
 
 
@@ -182,7 +178,7 @@ const initData = async () => {
     wsClient.connect()
 
     // 监听新消息通知
-    wsClient.addGlobalCallback(7, async (content: string) => {
+    wsClient.addGlobalCallback(3, async (content: string) => {
         const notify: newMessageNotify = JSON.parse(content)
         let session
         if(notify.kind === 'group') {
@@ -204,13 +200,13 @@ const initData = async () => {
           seq: session?.offset || 0
         }
         wsClient.send({
-          type: 6,
+          type: 3,
           content: JSON.stringify(req)
         })
     })
 
     // 监听消息通知
-    wsClient.addGlobalCallback(6, (content: string) => {
+    wsClient.addGlobalCallback(4, (content: string) => {
         const msgs: newMessage[] = JSON.parse(content)
         let maxSeq = 0
         let sessionId = 0
@@ -250,11 +246,10 @@ const initData = async () => {
               maxSeq = body.seq
             }
             const ackMessage: AckMessage = {
-              type: 6,
+              type: 3,
               kind: kind,
               sessionId: session.sessionId,
-              id: 0,
-              seq: maxSeq
+              seq: maxSeq,
             }
             wsClient.send({
               type: 1,
@@ -265,26 +260,36 @@ const initData = async () => {
         })
     })
 
-    wsClient.addGlobalCallback(3, async (content: string) => {
-      const msg: notifyMessage = JSON.parse(content)
-      if(msg.type === 4) {
-        friendStore.hasUnreadFriendApply = true
-      }
-      if(msg.type === 5) {
-        await friendStore.fetchFriends()
-      }
+    // 新的好友申请
+    wsClient.addGlobalCallback(5, async (content: string) => {
+      friendStore.hasUnreadFriendApply = true
     })
-
+    // 好友申请已处理
+    wsClient.addGlobalCallback(6, async (content: string) => {
+      await friendStore.fetchFriends()
+    })
+    wsClient.addGlobalCallback(7, async (content: string) => {
+      await friendStore.fetchFriends()
+    })
+    // 新的群申请
     wsClient.addGlobalCallback(8, async (content: string) => {
-      // TODO ack
-      const msg: notifyMessage = JSON.parse(content)
-      if(msg.type === 9) {
-        groupStore.hasUnreadGroupApply = true
-      }
-      if(msg.type === 10) {
-        await groupStore.fetchGroups()
-        await chatStore.fetchSessions()
-      }
+      groupStore.hasUnreadGroupApply = true
+    })
+    // 群申请已处理
+    wsClient.addGlobalCallback(9, async (content: string) => {
+      await groupStore.fetchGroups()
+      await chatStore.fetchSessions()
+    })
+    wsClient.addGlobalCallback(10, async (content: string) => {
+      await groupStore.fetchGroups()
+      await chatStore.fetchSessions()
+    })
+    wsClient.addGlobalCallback(11, async (content: string) => {
+      await groupStore.fetchGroups()
+      await chatStore.fetchSessions()
+    })
+    wsClient.addGlobalCallback(12, async (content: string) => {
+      await groupStore.fetchGroups()
     })
 
   } catch (error) {

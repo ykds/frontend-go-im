@@ -7,6 +7,7 @@ interface Friend {
   username: string
   avatar: string
   gender: string
+  remark: string
 }
 
 interface ListFriendResponse {
@@ -29,7 +30,7 @@ export const useFriendStore = defineStore('friend', () => {
   const friends = ref<Friend[]>([])
   const loading = ref(false)
   const error = ref<string | null>(null)
-  const friendMap = ref<Record<string, Friend>>({})
+  const friendMap = ref<Record<number, Friend>>({})
   const hasUnreadFriendApply = ref(false)
   const applyList = ref<FriendApplyInfo[]>([])
 

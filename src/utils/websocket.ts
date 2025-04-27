@@ -5,6 +5,7 @@ import { WS_URL } from '@/config'
 interface Message {
   type: number
   content: string
+  ack_id?: number
 }
 
 interface WebSocketOptions {
@@ -12,6 +13,11 @@ interface WebSocketOptions {
   reconnectInterval?: number
   maxReconnectAttempts?: number
   heartbeatInterval?: number
+}
+
+interface AckMessage {
+	type: number
+  ack_id: number
 }
 
 // 定义回调函数类型
@@ -129,6 +135,14 @@ class WebSocketClient {
     const handler = this.messageCallbacks.get(message.type)
     if (handler) {
       handler(message.content)
+      const ackMessage: AckMessage = {
+        type: message.type,
+        ack_id: message.ack_id as number,
+      }
+      wsClient.send({
+        type: 1,
+        content: JSON.stringify(ackMessage)
+      })
     }
   }
 

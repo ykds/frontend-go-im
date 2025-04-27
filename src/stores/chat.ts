@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { getSessions } from '@/api/chat'
 import { persistConfig } from './persist'
+import { useFriendStore } from '@/stores/friend'
 
 interface Session {
   sessionId: number
@@ -36,6 +37,8 @@ export const useChatStore = defineStore('chat', () => {
   const currentSessionId = ref<number | null>(null)
   const loading = ref(false)
   const error = ref<string | null>(null)
+  const friendStore = useFriendStore()
+
 
   // Initialize maps
   const initializeMaps = () => {
@@ -64,6 +67,13 @@ export const useChatStore = defineStore('chat', () => {
 
       if(sessions.value.length > 0) {
         newSessions.forEach(item => {
+          let friendName = item.friendName
+          if(item.kind === 'single') {
+            let remark = friendStore.friendMap[item.friendId].remark
+            if(remark) {
+              friendName = remark
+            }
+          }
           sessions.value.push({
             sessionId: item.sessionId,
             kind: item.kind,
@@ -72,7 +82,7 @@ export const useChatStore = defineStore('chat', () => {
             groupAvatar: item.groupAvatar,
             memberCount: item.memberCount,
             friendId: item.friendId,
-            friendName: item.friendName,
+            friendName: friendName,
             friendAvatar: item.friendAvatar,
             seq: item.seq,
             messages: [],
@@ -87,21 +97,30 @@ export const useChatStore = defineStore('chat', () => {
           }
         })
       } else {
-        sessions.value = response.list.map((item: any) => ({
-          sessionId: item.sessionId,
-          kind: item.kind,
-          groupId: item.groupId,
-          groupName: item.groupName,
-          groupAvatar: item.groupAvatar,
-          memberCount: item.memberCount,
-          friendId: item.friendId,
-          friendName: item.friendName,
-          friendAvatar: item.friendAvatar,
-          seq: item.seq,
-          messages: [],
-          lastMessage: '',
-          offset: item.seq+1,
-        }))
+        response.list.forEach(item => {
+          let friendName = item.friendName
+          if(item.kind === 'single') {
+            let remark = friendStore.friendMap[item.friendId].remark
+            if(remark) {
+              friendName = remark
+            }
+          }
+          sessions.value.push({
+            sessionId: item.sessionId,
+            kind: item.kind,
+            groupId: item.groupId,
+            groupName: item.groupName,
+            groupAvatar: item.groupAvatar,
+            memberCount: item.memberCount,
+            friendId: item.friendId,
+            friendName: friendName,
+            friendAvatar: item.friendAvatar,
+            seq: item.seq,
+            messages: [],
+            lastMessage: '',
+            offset: item.seq+1,
+          })
+        });
         sessionMap.value = new Map(sessions.value.map(session => [session.sessionId, session]))
         sessions.value.forEach(session => {
           if (session.kind === 'single') {

@@ -2,7 +2,8 @@
   <div class="friend-detail">
     <img :src="friend.avatar?API_BASE_URL+friend.avatar : defaultAvatar" :alt="friend.username" class="avatar" />
     <div class="username-section">
-      <h2>{{ friend.username }}</h2>
+      <h2 v-if="friend.remark">{{ friend.remark }}</h2>
+      <h2 v-else>{{ friend.username }}</h2>
       <div class="gender-badge" :class="friend.gender">
         <el-icon>
           <svg v-if="friend.gender === 'male'" viewBox="0 0 24 24">
@@ -47,7 +48,7 @@ interface Friend {
   userId: number
   username: string
   avatar: string
-  // remark?: string
+  remark: string
   gender: string
 }
 

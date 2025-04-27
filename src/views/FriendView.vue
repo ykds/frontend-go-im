@@ -61,7 +61,8 @@
              @click="selectFriend(friend)"
              @dblclick="handleDoubleClick(friend)">
           <img :src="friend.avatar ? API_BASE_URL + friend.avatar : defaultAvatar" :alt="friend.username" class="friend-avatar" />
-          <span class="friend-name">{{ friend.username }}</span>
+          <span v-if="friend.remark" class="friend-name">{{ friend.remark }}</span>
+          <span v-else class="friend-name">{{ friend.username }}</span>
         </div>
       </div>
       <div class="friend-detail" :class="{ 'empty': !selectedFriend }">
@@ -86,11 +87,13 @@ import { useChatStore } from '@/stores/chat'
 import { createSession, type CreateSessionReq, type CreateSessionResp } from '@/api/chat'
 import { ElMessage } from 'element-plus'
 import { API_BASE_URL } from '@/config'
+
 interface Friend {
   userId: number
   username: string
   avatar: string
   gender: string
+  remark: string
 }
 
 const router = useRouter()
