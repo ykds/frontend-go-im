@@ -85,28 +85,27 @@ const handleLogin = async () => {
 }
 
 interface pollMessage {
-  sessionId: number
+  session_id: number
   kind: string
   seq: number
 }
 
 interface newMessageNotify {
   kind: string
-  sessionId: number
+  session_id: number
   seq: number
   toId: number
 }
 
 interface newMessage {
   type: number
-  content: string
+  data: string
 }
 
 interface Body {
 	id: number
-  sessionId: number
-	fromId: number
-	toId: number
+  session_id: number
+	from_id: number
 	content: string
 	seq: number
 	kind: string
@@ -119,6 +118,7 @@ interface AckMessage {
 	sessionId?: number
 	id?: number
 	seq?: number
+  ack_id?: number
 }
 
 
@@ -178,7 +178,16 @@ const initData = async () => {
     wsClient.connect()
 
     // 监听新消息通知
-    wsClient.addGlobalCallback(3, async (content: string) => {
+    wsClient.addGlobalCallback(4, async (content: string, ackId: number|undefined) => {
+        const ackMessage: AckMessage = {
+          type: 4,
+          ack_id: ackId,
+        }
+        wsClient.send({
+          type: 1,
+          data: JSON.stringify(ackMessage)
+        })
+
         const notify: newMessageNotify = JSON.parse(content)
         let session
         if(notify.kind === 'group') {
@@ -188,32 +197,32 @@ const initData = async () => {
           let sessionId = chatStore.gsMap.get(notify.toId)
           session = chatStore.sessionMap.get(sessionId as number)
         } else if (notify.kind === 'single') {
-          session = chatStore.sessionMap.get(notify.sessionId)
+          session = chatStore.sessionMap.get(notify.session_id)
         }
         if (!session) {
           await chatStore.fetchSessions()
-          session = chatStore.sessionMap.get(notify.sessionId)
+          session = chatStore.sessionMap.get(notify.session_id)
         }
         const req: pollMessage = {
-          sessionId: notify.sessionId,
+          session_id: notify.session_id,
           kind: notify.kind,
           seq: session?.offset || 0
         }
         wsClient.send({
           type: 3,
-          content: JSON.stringify(req)
+          data: JSON.stringify(req),
         })
     })
 
     // 监听消息通知
-    wsClient.addGlobalCallback(4, (content: string) => {
+    wsClient.addGlobalCallback(3, (content: string, ackId: number|undefined) => {
         const msgs: newMessage[] = JSON.parse(content)
         let maxSeq = 0
         let sessionId = 0
         let kind = ""
         msgs.forEach(msg => {
-          const body: Body = JSON.parse(msg.content)
-          sessionId = body.sessionId
+          const body: Body = JSON.parse(msg.data)
+          sessionId = body.session_id
           kind = body.kind
 
           let session
@@ -223,14 +232,13 @@ const initData = async () => {
             if (!(chatStore.gsMap instanceof Map)) {
               chatStore.gsMap = new Map()
             }
-            sessionId = chatStore.gsMap.get(body.toId) as number
             session = chatStore.sessionMap.get(sessionId)
-            sender = groupStore.memberMap[body.toId][body.fromId]?.name || '未知'
-            avatar = groupStore.memberMap[body.toId][body.fromId]?.avatar || defaultAvatar
+            sender = groupStore.memberMap[session?.groupId as number][body.from_id]?.name || '未知'
+            avatar = groupStore.memberMap[session?.groupId as number][body.from_id]?.avatar || defaultAvatar
           } else if (kind === 'single') {
             session = chatStore.sessionMap.get(sessionId)
-            sender = friendStore.friendMap[body.fromId]?.username || '未知'
-            avatar = friendStore.friendMap[body.fromId]?.avatar || defaultAvatar
+            sender = friendStore.friendMap[body.from_id]?.username || '未知'
+            avatar = friendStore.friendMap[body.from_id]?.avatar || defaultAvatar
           }
 
           if (session) {
@@ -245,50 +253,124 @@ const initData = async () => {
             if (body.seq > maxSeq) {
               maxSeq = body.seq
             }
-            const ackMessage: AckMessage = {
-              type: 3,
-              kind: kind,
-              sessionId: session.sessionId,
-              seq: maxSeq,
-            }
-            wsClient.send({
-              type: 1,
-              content: JSON.stringify(ackMessage)
-            })
+
             session.offset = maxSeq+1
           }
+        })
+
+        const ackMessage: AckMessage = {
+            type: 3,
+            kind: kind,
+            id: sessionId,
+            seq: maxSeq,
+          }
+        wsClient.send({
+          type: 1,
+          data: JSON.stringify(ackMessage),
         })
     })
 
     // 新的好友申请
-    wsClient.addGlobalCallback(5, async (content: string) => {
+    wsClient.addGlobalCallback(5, async (content: string, ackId: number|undefined) => {
+      const ackMessage: AckMessage = {
+          type: 5,
+          ack_id: ackId,
+        }
+        wsClient.send({
+          type: 1,
+          data: JSON.stringify(ackMessage),
+          ack_id: ackId,
+        })
       friendStore.hasUnreadFriendApply = true
     })
     // 好友申请已处理
-    wsClient.addGlobalCallback(6, async (content: string) => {
+    wsClient.addGlobalCallback(6, async (content: string, ackId: number|undefined) => {
+      const ackMessage: AckMessage = {
+          type: 6,
+          ack_id: ackId,
+        }
+        wsClient.send({
+          type: 1,
+          data: JSON.stringify(ackMessage),
+          ack_id: ackId,
+        })
       await friendStore.fetchFriends()
     })
-    wsClient.addGlobalCallback(7, async (content: string) => {
+    wsClient.addGlobalCallback(7, async (content: string, ackId: number|undefined) => {
+      const ackMessage: AckMessage = {
+          type: 7,
+          ack_id: ackId,
+        }
+        wsClient.send({
+          type: 1,
+          data: JSON.stringify(ackMessage),
+          ack_id: ackId,
+        })
       await friendStore.fetchFriends()
     })
     // 新的群申请
-    wsClient.addGlobalCallback(8, async (content: string) => {
+    wsClient.addGlobalCallback(8, async (content: string, ackId: number|undefined) => {
+      const ackMessage: AckMessage = {
+          type: 8,
+          ack_id: ackId,
+        }
+        wsClient.send({
+          type: 1,
+          data: JSON.stringify(ackMessage),
+          ack_id: ackId,
+        })
       groupStore.hasUnreadGroupApply = true
     })
     // 群申请已处理
-    wsClient.addGlobalCallback(9, async (content: string) => {
+    wsClient.addGlobalCallback(9, async (content: string, ackId: number|undefined) => {
+      const ackMessage: AckMessage = {
+          type: 9,
+          ack_id: ackId,
+        }
+        wsClient.send({
+          type: 1,
+          data: JSON.stringify(ackMessage),
+          ack_id: ackId,
+        })
       await groupStore.fetchGroups()
       await chatStore.fetchSessions()
     })
-    wsClient.addGlobalCallback(10, async (content: string) => {
+    wsClient.addGlobalCallback(10, async (content: string, ackId: number|undefined) => {
+      const ackMessage: AckMessage = {
+          type: 10,
+          ack_id: ackId,
+        }
+        wsClient.send({
+          type: 1,
+          data: JSON.stringify(ackMessage),
+          ack_id: ackId,
+        })
       await groupStore.fetchGroups()
       await chatStore.fetchSessions()
     })
-    wsClient.addGlobalCallback(11, async (content: string) => {
+    wsClient.addGlobalCallback(11, async (content: string, ackId: number|undefined) => {
+      const ackMessage: AckMessage = {
+          type: 11,
+          ack_id: ackId,
+        }
+        wsClient.send({
+          type: 1,
+          data: JSON.stringify(ackMessage),
+          ack_id: ackId,
+        })
       await groupStore.fetchGroups()
       await chatStore.fetchSessions()
     })
-    wsClient.addGlobalCallback(12, async (content: string) => {
+    wsClient.addGlobalCallback(12, async (content: string, ackId: number|undefined) => {
+      const ackMessage: AckMessage = {
+          type: 12,
+          ack_id: ackId,
+        }
+        wsClient.send({
+          type: 1,
+          data: JSON.stringify(ackMessage),
+          ack_id: ackId,
+        })
       await groupStore.fetchGroups()
     })
 

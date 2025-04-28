@@ -4,7 +4,7 @@ import { WS_URL } from '@/config'
 
 interface Message {
   type: number
-  content: string
+  data: string
   ack_id?: number
 }
 
@@ -33,7 +33,7 @@ class WebSocketClient {
   }
   private reconnectAttempts = 0
   private heartbeatInterval: number | null = null
-  private messageCallbacks: Map<number, (content: string) => void> = new Map()
+  private messageCallbacks: Map<number, (content: string, ackId: number|undefined) => void> = new Map()
   private isConnected = ref(false)
 
   connect() {
@@ -103,7 +103,7 @@ class WebSocketClient {
         // 这里发送心跳消息，具体内容由用户填充
         this.send({
           type: 2, // 心跳消息类型
-          content: '' // 心跳消息内容
+          data: '' // 心跳消息内容
         })
       }
     }, this.options.heartbeatInterval || 50000)
@@ -134,15 +134,7 @@ class WebSocketClient {
     // 调用特定类型的处理函数
     const handler = this.messageCallbacks.get(message.type)
     if (handler) {
-      handler(message.content)
-      const ackMessage: AckMessage = {
-        type: message.type,
-        ack_id: message.ack_id as number,
-      }
-      wsClient.send({
-        type: 1,
-        content: JSON.stringify(ackMessage)
-      })
+      handler(message.data, message.ack_id)
     }
   }
 
@@ -151,16 +143,11 @@ class WebSocketClient {
       console.error('WebSocket is not connected')
       return
     }
-
-    try {
-      this.ws.send(JSON.stringify(message))
-    } catch (error) {
-      console.error('Failed to send message:', error)
-    }
+    this.ws.send(JSON.stringify(message))
   }
 
   // 注册全局回调函数
-  addGlobalCallback(key: number, callback: (content: string) => void) {
+  addGlobalCallback(key: number, callback: (content: string, ackId: number|undefined) => void) {
     this.messageCallbacks.set(key, callback)
   }
 
